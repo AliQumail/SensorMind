@@ -1,4 +1,5 @@
-using Microsoft.Data.Sqlite;
+using System.Data.Common;
+using Npgsql;
 
 namespace SensorMind.Infrastructure.Sites;
 
@@ -6,20 +7,14 @@ public sealed record Tenant(string Id, string Name);
 
 public sealed record SiteEntry(string Id, string TenantId, string Name, string ConfigJson);
 
-/// <summary>SQLite persistence for tenants and the plant config JSON of each site.</summary>
+/// <summary>PostgreSQL persistence for tenants and the plant config JSON of each site.</summary>
 public sealed class SiteRepository
 {
     private readonly string _connectionString;
 
-    public SiteRepository(string databasePath)
+    public SiteRepository(string connectionString)
     {
-        var directory = Path.GetDirectoryName(Path.GetFullPath(databasePath));
-        if (directory is not null)
-        {
-            Directory.CreateDirectory(directory);
-        }
-
-        _connectionString = $"Data Source={databasePath}";
+        _connectionString = connectionString;
         Execute("""
             CREATE TABLE IF NOT EXISTS tenants (id TEXT PRIMARY KEY, name TEXT NOT NULL);
             CREATE TABLE IF NOT EXISTS sites (
@@ -49,28 +44,25 @@ public sealed class SiteRepository
             command.ExecuteNonQuery();
         }
 
-        Run("INSERT INTO tenants (id, name) VALUES ($id, $name) ON CONFLICT(id) DO UPDATE SET name = $name",
-            ("$id", tenant.Id), ("$name", tenant.Name));
-        Run("DELETE FROM sites WHERE tenant_id = $id", ("$id", tenant.Id));
+        Run("INSERT INTO tenants (id, name) VALUES (@id, @name) ON CONFLICT (id) DO UPDATE SET name = @name",
+            ("id", tenant.Id), ("name", tenant.Name));
+        Run("DELETE FROM sites WHERE tenant_id = @id", ("id", tenant.Id));
         foreach (var site in sites)
         {
-            Run("INSERT INTO sites (id, tenant_id, name, config_json) VALUES ($id, $tenant, $name, $json)",
-                ("$id", site.Id), ("$tenant", site.TenantId), ("$name", site.Name), ("$json", site.ConfigJson));
+            Run("INSERT INTO sites (id, tenant_id, name, config_json) VALUES (@id, @tenant, @name, @json)",
+                ("id", site.Id), ("tenant", site.TenantId), ("name", site.Name), ("json", site.ConfigJson));
         }
 
         transaction.Commit();
     }
 
     public void DeleteTenant(string id) =>
-        Execute("DELETE FROM tenants WHERE id = $id", ("$id", id));
+        Execute("DELETE FROM tenants WHERE id = @id", ("id", id));
 
-    private SqliteConnection Open()
+    private NpgsqlConnection Open()
     {
-        var connection = new SqliteConnection(_connectionString);
+        var connection = new NpgsqlConnection(_connectionString);
         connection.Open();
-        using var pragma = connection.CreateCommand();
-        pragma.CommandText = "PRAGMA foreign_keys = ON";
-        pragma.ExecuteNonQuery();
         return connection;
     }
 
@@ -81,7 +73,7 @@ public sealed class SiteRepository
         command.ExecuteNonQuery();
     }
 
-    private List<T> Query<T>(string sql, Func<SqliteDataReader, T> map)
+    private List<T> Query<T>(string sql, Func<DbDataReader, T> map)
     {
         using var connection = Open();
         using var command = Build(connection, sql, []);
@@ -95,7 +87,7 @@ public sealed class SiteRepository
         return rows;
     }
 
-    private static SqliteCommand Build(SqliteConnection connection, string sql, (string Name, object Value)[] parameters)
+    private static NpgsqlCommand Build(NpgsqlConnection connection, string sql, (string Name, object Value)[] parameters)
     {
         var command = connection.CreateCommand();
         command.CommandText = sql;

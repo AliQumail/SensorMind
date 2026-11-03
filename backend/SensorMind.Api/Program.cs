@@ -11,8 +11,9 @@ using SensorMind.Infrastructure.Sites;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var databasePath = Path.Combine(builder.Environment.ContentRootPath, builder.Configuration["Database:Path"] ?? "data/sensormind.db");
-builder.Services.AddSensorMindInfrastructure(builder.Configuration, databasePath);
+var connectionString = builder.Configuration.GetConnectionString("SensorMind")
+    ?? throw new InvalidOperationException("ConnectionStrings:SensorMind is not configured.");
+builder.Services.AddSensorMindInfrastructure(builder.Configuration, connectionString);
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {

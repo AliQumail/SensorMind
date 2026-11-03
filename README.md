@@ -17,9 +17,12 @@ Built with .NET 8, React 19, Three.js and Qdrant. MIT licensed.
 
 ## Run it
 
-Needs the .NET 8 SDK and Node 20+:
+Needs the .NET 8 SDK, Node 20+ and Docker (for PostgreSQL only):
 
 ```bash
+# once: start PostgreSQL in the background
+docker compose up -d
+
 # terminal 1: API on http://localhost:5080 (Development: fixed seed, CORS for :5173)
 dotnet run --project backend/SensorMind.Api
 
@@ -76,7 +79,8 @@ Design choices and trade-offs are logged in [docs/decisions.md](docs/decisions.m
 
 | Setting (env var) | Default | |
 |---|---|---|
-| `Plant__ConfigPath` | `data/plant.sample.json` | Relative to the API content root |
+| `ConnectionStrings__SensorMind` | none (Development: the local Docker database) | PostgreSQL connection string |
+| `Plant__ConfigPath` | `data/plant.sample.json` | Relative to the API content root. Seeds the Demo Tenant when the database is empty |
 | `Simulation__Seed` | random (Development: 42) | Fix it for reproducible data |
 | `Simulation__IntervalSeconds` | `2` | Sample period |
 | `Simulation__RetentionHours` | `24` | In-memory history window |

@@ -1,0 +1,18 @@
+# Local PostgreSQL for development: docker compose up -d
+name: sensormind
+
+services:
+  postgres:
+    image: postgres:17.5
+    environment:
+      POSTGRES_USER: sensormind
+      POSTGRES_PASSWORD: sensormind
+      POSTGRES_DB: sensormind
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres-data:

@@ -10,7 +10,7 @@ public sealed record SaveResult(IReadOnlyList<ConfigError> Errors, string? SiteI
 }
 
 /// <summary>
-/// Tenants and their sites, backed by SQLite. A tenant is saved as one document,
+/// Tenants and their sites, backed by PostgreSQL. A tenant is saved as one document,
 /// <c>{ "tenant": "name", "sites": [ ... ] }</c>. Keeps a parsed <see cref="PlantIndex"/> per site in memory
 /// and raises <see cref="Changed"/> after every write so the simulator can follow.
 /// </summary>

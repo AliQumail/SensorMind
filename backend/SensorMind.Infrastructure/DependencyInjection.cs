@@ -12,9 +12,9 @@ public static class DependencyInjection
     public static IServiceCollection AddSensorMindInfrastructure(
         this IServiceCollection services,
         IConfiguration configuration,
-        string databasePath)
+        string connectionString)
     {
-        services.AddSingleton(new SiteRepository(databasePath));
+        services.AddSingleton(new SiteRepository(connectionString));
         services.AddSingleton<PlantCatalog>();
         services.AddSingleton(TimeProvider.System);
 

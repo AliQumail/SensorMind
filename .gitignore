@@ -147,3 +147,20 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+TestResults/
+*.trx
+
+# Editors / OS
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local overrides
+appsettings.Local.json

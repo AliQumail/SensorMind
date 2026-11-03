@@ -1,0 +1,211 @@
+{
+  "schemaVersion": 1,
+  "site": {
+    "id": "site-harbor",
+    "name": "Harbor Works",
+    "location": "Demo site (fictional)",
+    "floors": [
+      {
+        "id": "floor-ground",
+        "name": "Ground Floor - Utilities",
+        "level": 0,
+        "size": { "width": 30, "depth": 18 },
+        "groups": [
+          {
+            "id": "grp-cooling-water",
+            "name": "Cooling Water",
+            "equipment": [
+              {
+                "id": "p-101",
+                "name": "Cooling Water Pump P-101",
+                "type": "pump",
+                "manufacturer": "Grundfos",
+                "model": "CR 32-2",
+                "description": "Vertical multistage pump, duty unit for the cooling water loop.",
+                "position": { "x": 5, "z": 5 },
+                "size": { "x": 0.7, "y": 1.5, "z": 0.7 },
+                "shape": "cylinder",
+                "tags": [
+                  { "id": "p-101.discharge-pressure", "name": "Discharge Pressure", "unit": "bar", "nominalMin": 3.6, "nominalMax": 4.4, "alarmLow": 2.8, "alarmHigh": 5.2 },
+                  { "id": "p-101.flow", "name": "Flow", "unit": "m³/h", "nominalMin": 28, "nominalMax": 34, "alarmLow": 20 },
+                  { "id": "p-101.motor-current", "name": "Motor Current", "unit": "A", "nominalMin": 17, "nominalMax": 22, "alarmHigh": 26 },
+                  { "id": "p-101.bearing-temp", "name": "Bearing Temperature", "unit": "°C", "nominalMin": 42, "nominalMax": 62, "alarmHigh": 80 },
+                  { "id": "p-101.vibration", "name": "Vibration (RMS)", "unit": "mm/s", "nominalMin": 0.6, "nominalMax": 2.8, "alarmHigh": 7.1 }
+                ]
+              },
+              {
+                "id": "p-102",
+                "name": "Cooling Water Pump P-102",
+                "type": "pump",
+                "manufacturer": "Grundfos",
+                "model": "CR 32-2",
+                "description": "Vertical multistage pump, standby unit for the cooling water loop.",
+                "position": { "x": 7.5, "z": 5 },
+                "size": { "x": 0.7, "y": 1.5, "z": 0.7 },
+                "shape": "cylinder",
+                "tags": [
+                  { "id": "p-102.discharge-pressure", "name": "Discharge Pressure", "unit": "bar", "nominalMin": 3.6, "nominalMax": 4.4, "alarmLow": 2.8, "alarmHigh": 5.2 },
+                  { "id": "p-102.flow", "name": "Flow", "unit": "m³/h", "nominalMin": 28, "nominalMax": 34, "alarmLow": 20 },
+                  { "id": "p-102.motor-current", "name": "Motor Current", "unit": "A", "nominalMin": 17, "nominalMax": 22, "alarmHigh": 26 },
+                  { "id": "p-102.bearing-temp", "name": "Bearing Temperature", "unit": "°C", "nominalMin": 42, "nominalMax": 62, "alarmHigh": 80 }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "grp-compressed-air",
+            "name": "Compressed Air",
+            "equipment": [
+              {
+                "id": "c-201",
+                "name": "Air Compressor C-201",
+                "type": "compressor",
+                "manufacturer": "Atlas Copco",
+                "model": "GA 37 VSD+",
+                "description": "Oil-injected rotary screw compressor with variable speed drive, lead unit.",
+                "position": { "x": 15, "z": 6 },
+                "size": { "x": 1.9, "y": 1.6, "z": 0.9 },
+                "shape": "box",
+                "tags": [
+                  { "id": "c-201.outlet-pressure", "name": "Outlet Pressure", "unit": "bar", "nominalMin": 6.8, "nominalMax": 7.4, "alarmLow": 6.0, "alarmHigh": 8.2 },
+                  { "id": "c-201.element-temp", "name": "Element Outlet Temperature", "unit": "°C", "nominalMin": 72, "nominalMax": 95, "alarmHigh": 110 },
+                  { "id": "c-201.motor-speed", "name": "Motor Speed", "unit": "rpm", "nominalMin": 2200, "nominalMax": 3600, "alarmHigh": 4200 },
+                  { "id": "c-201.power", "name": "Input Power", "unit": "kW", "nominalMin": 22, "nominalMax": 34, "alarmHigh": 40 }
+                ]
+              },
+              {
+                "id": "c-202",
+                "name": "Air Compressor C-202",
+                "type": "compressor",
+                "manufacturer": "Atlas Copco",
+                "model": "GA 37 VSD+",
+                "description": "Oil-injected rotary screw compressor with variable speed drive, lag unit.",
+                "position": { "x": 19, "z": 6 },
+                "size": { "x": 1.9, "y": 1.6, "z": 0.9 },
+                "shape": "box",
+                "tags": [
+                  { "id": "c-202.outlet-pressure", "name": "Outlet Pressure", "unit": "bar", "nominalMin": 6.8, "nominalMax": 7.4, "alarmLow": 6.0, "alarmHigh": 8.2 },
+                  { "id": "c-202.element-temp", "name": "Element Outlet Temperature", "unit": "°C", "nominalMin": 72, "nominalMax": 95, "alarmHigh": 110 },
+                  { "id": "c-202.motor-speed", "name": "Motor Speed", "unit": "rpm", "nominalMin": 1800, "nominalMax": 3200, "alarmHigh": 4200 },
+                  { "id": "c-202.separator-dp", "name": "Oil Separator Pressure Drop", "unit": "bar", "nominalMin": 0.2, "nominalMax": 0.6, "alarmHigh": 1.0 }
+                ]
+              },
+              {
+                "id": "t-201",
+                "name": "Air Receiver T-201",
+                "type": "tank",
+                "manufacturer": "Atlas Copco",
+                "model": "LV 2000",
+                "description": "2000 L vertical compressed air receiver downstream of C-201 and C-202.",
+                "position": { "x": 24, "z": 11 },
+                "size": { "x": 1.1, "y": 2.8, "z": 1.1 },
+                "tags": [
+                  { "id": "t-201.pressure", "name": "Receiver Pressure", "unit": "bar", "nominalMin": 6.6, "nominalMax": 7.3, "alarmLow": 5.8, "alarmHigh": 8.5 },
+                  { "id": "t-201.temperature", "name": "Air Temperature", "unit": "°C", "nominalMin": 25, "nominalMax": 40, "alarmHigh": 55 },
+                  { "id": "t-201.condensate-level", "name": "Condensate Level", "unit": "%", "nominalMin": 2, "nominalMax": 30, "alarmHigh": 70 }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "floor-first",
+        "name": "First Floor - Process",
+        "level": 1,
+        "size": { "width": 24, "depth": 16 },
+        "groups": [
+          {
+            "id": "grp-mixing-line",
+            "name": "Mixing Line",
+            "equipment": [
+              {
+                "id": "m-301",
+                "name": "Mixer Drive Motor M-301",
+                "type": "motor",
+                "manufacturer": "ABB",
+                "model": "M3BP 160MLA 4",
+                "description": "11 kW IE3 induction motor driving the main mixer gearbox.",
+                "position": { "x": 4, "z": 5 },
+                "size": { "x": 1.0, "y": 0.6, "z": 0.6 },
+                "tags": [
+                  { "id": "m-301.current", "name": "Phase Current", "unit": "A", "nominalMin": 16, "nominalMax": 21, "alarmHigh": 25 },
+                  { "id": "m-301.winding-temp", "name": "Winding Temperature", "unit": "°C", "nominalMin": 60, "nominalMax": 95, "alarmHigh": 130 },
+                  { "id": "m-301.speed", "name": "Shaft Speed", "unit": "rpm", "nominalMin": 1455, "nominalMax": 1480, "alarmLow": 1400 },
+                  { "id": "m-301.vibration", "name": "Vibration (RMS)", "unit": "mm/s", "nominalMin": 0.5, "nominalMax": 2.3, "alarmHigh": 4.5 }
+                ]
+              },
+              {
+                "id": "m-302",
+                "name": "Agitator Motor M-302",
+                "type": "motor",
+                "manufacturer": "ABB",
+                "model": "M3BP 132SMA 4",
+                "description": "5.5 kW IE3 induction motor on the buffer tank agitator.",
+                "position": { "x": 8, "z": 5 },
+                "size": { "x": 0.8, "y": 0.5, "z": 0.5 },
+                "tags": [
+                  { "id": "m-302.current", "name": "Phase Current", "unit": "A", "nominalMin": 8, "nominalMax": 11, "alarmHigh": 13.5 },
+                  { "id": "m-302.winding-temp", "name": "Winding Temperature", "unit": "°C", "nominalMin": 55, "nominalMax": 90, "alarmHigh": 125 },
+                  { "id": "m-302.vibration", "name": "Vibration (RMS)", "unit": "mm/s", "nominalMin": 0.4, "nominalMax": 2.0, "alarmHigh": 4.5 }
+                ]
+              },
+              {
+                "id": "p-301",
+                "name": "Transfer Pump P-301",
+                "type": "pump",
+                "manufacturer": "Grundfos",
+                "model": "NB 65-200",
+                "description": "End-suction transfer pump from the mixer to the process water tank.",
+                "position": { "x": 12, "z": 9 },
+                "size": { "x": 1.6, "y": 0.7, "z": 0.6 },
+                "tags": [
+                  { "id": "p-301.discharge-pressure", "name": "Discharge Pressure", "unit": "bar", "nominalMin": 2.4, "nominalMax": 3.2, "alarmLow": 1.6, "alarmHigh": 4.0 },
+                  { "id": "p-301.flow", "name": "Flow", "unit": "m³/h", "nominalMin": 45, "nominalMax": 60, "alarmLow": 30 },
+                  { "id": "p-301.bearing-temp", "name": "Bearing Temperature", "unit": "°C", "nominalMin": 40, "nominalMax": 65, "alarmHigh": 85 }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "grp-water-storage",
+            "name": "Water Storage & Dosing",
+            "equipment": [
+              {
+                "id": "t-301",
+                "name": "Process Water Tank T-301",
+                "type": "tank",
+                "manufacturer": "Generic",
+                "model": "PE 25 m³",
+                "description": "Atmospheric polyethylene buffer tank for treated process water.",
+                "position": { "x": 19, "z": 10 },
+                "size": { "x": 3.0, "y": 4.0, "z": 3.0 },
+                "tags": [
+                  { "id": "t-301.level", "name": "Level", "unit": "%", "nominalMin": 35, "nominalMax": 80, "alarmLow": 15, "alarmHigh": 92 },
+                  { "id": "t-301.temperature", "name": "Water Temperature", "unit": "°C", "nominalMin": 14, "nominalMax": 24, "alarmHigh": 35 },
+                  { "id": "t-301.ph", "name": "pH", "unit": "pH", "nominalMin": 6.8, "nominalMax": 7.6, "alarmLow": 6.0, "alarmHigh": 8.5 }
+                ]
+              },
+              {
+                "id": "p-302",
+                "name": "Dosing Pump P-302",
+                "type": "pump",
+                "manufacturer": "Grundfos",
+                "model": "DDA 7.5-16",
+                "description": "Diaphragm dosing pump for pH correction of the process water tank.",
+                "position": { "x": 15.5, "z": 13 },
+                "size": { "x": 0.5, "y": 0.45, "z": 0.35 },
+                "shape": "box",
+                "tags": [
+                  { "id": "p-302.dosing-flow", "name": "Dosing Flow", "unit": "l/h", "nominalMin": 1.5, "nominalMax": 4.5, "alarmHigh": 7.0 },
+                  { "id": "p-302.backpressure", "name": "Backpressure", "unit": "bar", "nominalMin": 2.0, "nominalMax": 4.0, "alarmHigh": 14.0 },
+                  { "id": "p-302.chemical-level", "name": "Chemical Tank Level", "unit": "%", "nominalMin": 30, "nominalMax": 90, "alarmLow": 10 }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

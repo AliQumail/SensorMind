@@ -1,0 +1,100 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens: warm brownish white.
+ * The plain names (--bg, --surface, ...) are the source of truth and are also read by the
+ * Three.js scene (see theme/useThemeColors.ts). Tailwind utilities map onto them below.
+ *
+ * Contrast notes (WCAG AA, checked against --bg, --surface and --surface-raised):
+ *  - --text-muted is a touch darker than the original #7A6A5D, which measured 4.42:1 on --surface.
+ *  - --accent (3.6:1 as text) is for fills, rings and selection. Accent-coloured text uses --accent-text.
+ *  - Status base colours are for dots, fills and 3D tints; status text uses the *-text variants.
+ */
+:root {
+  --bg: #faf6f0;
+  --surface: #f3ece2;
+  --surface-raised: #fcf9f4;
+  --surface-hover: #ede3d5;
+  --border: #e2d6c6;
+  --border-strong: #cdbca7;
+  --text: #3b2f28;
+  --text-muted: #736356;
+  --accent: #a0714f;
+  --accent-hover: #8a5e3f;
+  --accent-active: #76502f;
+  --accent-text: #8a5e3f;
+  --accent-soft: #ead9c8;
+
+  --status-normal: #6b8f5e;
+  --status-warning: #d39b3a;
+  --status-alarm: #b5473a;
+  --status-normal-text: #4f6e43;
+  --status-warning-text: #8a5a12;
+  --status-alarm-text: #9a3a2f;
+
+  /* 3D scene */
+  --scene-floor: #ede3d5;
+  --scene-grid: #dccdb9;
+  --scene-zone: #e6d8c6;
+  --scene-light: #fff3e3;
+  --equip-pump: #7d8b84;
+  --equip-compressor: #9a8574;
+  --equip-motor: #75808a;
+  --equip-tank: #b6a28a;
+  --equip-other: #8f8579;
+
+  --shadow-soft: 0 1px 2px rgb(59 47 40 / 0.05), 0 4px 16px rgb(59 47 40 / 0.06);
+  --radius-panel: 12px;
+
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-active: var(--accent-active);
+  --color-accent-text: var(--accent-text);
+  --color-accent-soft: var(--accent-soft);
+  --color-normal: var(--status-normal);
+  --color-warning: var(--status-warning);
+  --color-alarm: var(--status-alarm);
+  --color-normal-text: var(--status-normal-text);
+  --color-warning-text: var(--status-warning-text);
+  --color-alarm-text: var(--status-alarm-text);
+
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
+  --shadow-soft: var(--shadow-soft);
+  --radius-panel: var(--radius-panel);
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-bg font-sans text-text antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}

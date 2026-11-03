@@ -1,0 +1,50 @@
+using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
+using System.Threading.Channels;
+using SensorMind.Core.Sensors;
+
+namespace SensorMind.Infrastructure.Sensors;
+
+/// <summary>
+/// In-process pub/sub for reading batches. Each subscriber gets its own small bounded channel that
+/// drops the oldest batch when full, so one slow client can never stall the simulator or others.
+/// </summary>
+public sealed class ReadingBroadcaster : IReadingFeed
+{
+    private const int SubscriberBufferSize = 16;
+
+    private readonly ConcurrentDictionary<Guid, Channel<ReadingBatch>> _subscribers = new();
+
+    public int SubscriberCount => _subscribers.Count;
+
+    public void Publish(ReadingBatch batch)
+    {
+        foreach (var channel in _subscribers.Values)
+        {
+            channel.Writer.TryWrite(batch);
+        }
+    }
+
+    public async IAsyncEnumerable<ReadingBatch> SubscribeAsync([EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var channel = Channel.CreateBounded<ReadingBatch>(new BoundedChannelOptions(SubscriberBufferSize)
+        {
+            FullMode = BoundedChannelFullMode.DropOldest,
+            SingleReader = true,
+        });
+
+        var id = Guid.NewGuid();
+        _subscribers[id] = channel;
+        try
+        {
+            await foreach (var batch in channel.Reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
+            {
+                yield return batch;
+            }
+        }
+        finally
+        {
+            _subscribers.TryRemove(id, out _);
+        }
+    }
+}

@@ -1,0 +1,23 @@
+@api = http://localhost:5080
+
+GET {{api}}/health
+
+###
+GET {{api}}/api/plant
+
+###
+GET {{api}}/api/readings/latest
+
+###
+# Server-Sent Events; most HTTP clients will show the first chunk only.
+GET {{api}}/api/readings/stream
+Accept: text/event-stream
+
+###
+GET {{api}}/api/tags/p-101.bearing-temp/history?maxPoints=60
+
+###
+POST {{api}}/api/plant/validate
+Content-Type: application/json
+
+{ "site": { "id": "Bad Id", "floors": [] } }

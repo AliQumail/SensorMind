@@ -86,3 +86,19 @@ export interface TagHistory {
   to: number
   points: { t: number; v: number }[]
 }
+
+export interface Tenant {
+  id: string
+  name: string
+}
+
+export interface SiteSummary {
+  id: string
+  tenantId: string
+  name: string
+}
+
+export interface ValidationError {
+  path: string
+  message: string
+}

@@ -1,9 +1,9 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using SensorMind.Core.Plant;
 using SensorMind.Core.Sensors;
 using SensorMind.Infrastructure.Sensors;
+using SensorMind.Infrastructure.Sites;
 
 namespace SensorMind.Infrastructure;
 
@@ -12,9 +12,10 @@ public static class DependencyInjection
     public static IServiceCollection AddSensorMindInfrastructure(
         this IServiceCollection services,
         IConfiguration configuration,
-        PlantModel plant)
+        string databasePath)
     {
-        services.AddSingleton(new PlantIndex(plant));
+        services.AddSingleton(new SiteRepository(databasePath));
+        services.AddSingleton<PlantCatalog>();
         services.AddSingleton(TimeProvider.System);
 
         services.AddOptions<SimulationOptions>()

@@ -10,8 +10,6 @@ internal static class PlantEndpoints
     {
         var group = api.MapGroup("/plant").WithTags("Plant");
 
-        group.MapGet("/", (PlantIndex index) => TypedResults.Ok(index.Plant));
-
         // Validates a candidate plant file without applying it. Importing is file-based (see docs/decisions.md),
         // because the demo is public and one visitor must not be able to replace the plant for everyone.
         group.MapPost("/validate", ValidateAsync);

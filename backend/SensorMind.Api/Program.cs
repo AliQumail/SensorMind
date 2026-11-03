@@ -1,16 +1,18 @@
+using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.IdentityModel.Tokens;
+using SensorMind.Api.Auth;
 using SensorMind.Api.Endpoints;
 using SensorMind.Infrastructure;
-using SensorMind.Infrastructure.Plant;
+using SensorMind.Infrastructure.Sites;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Fail fast on a bad plant file: the exception lists every validation error.
-var plantPath = Path.Combine(builder.Environment.ContentRootPath, builder.Configuration["Plant:ConfigPath"] ?? "data/plant.sample.json");
-var plant = PlantConfigLoader.LoadFromFile(plantPath);
-
-builder.Services.AddSensorMindInfrastructure(builder.Configuration, plant);
+var databasePath = Path.Combine(builder.Environment.ContentRootPath, builder.Configuration["Database:Path"] ?? "data/sensormind.db");
+builder.Services.AddSensorMindInfrastructure(builder.Configuration, databasePath);
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -20,20 +22,61 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
-    policy.WithOrigins(allowedOrigins).AllowAnyHeader().WithMethods("GET", "POST")));
+    policy.WithOrigins(allowedOrigins).AllowAnyHeader().WithMethods("GET", "POST", "PUT", "DELETE")));
+
+builder.Services.AddSingleton(new[] { AuthEndpoints.SeedAdmin() });
+var signingKey = AuthEndpoints.SigningKey(builder.Configuration);
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            IssuerSigningKey = signingKey,
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            NameClaimType = ClaimTypes.Name,
+            RoleClaimType = ClaimTypes.Role,
+        };
+
+        // EventSource cannot send an Authorization header, so the live stream takes the token as a query parameter.
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                if (context.Request.Path.StartsWithSegments("/api/readings/stream"))
+                {
+                    context.Token = context.Request.Query["access_token"];
+                }
+
+                return Task.CompletedTask;
+            },
+        };
+    });
+builder.Services.AddAuthorizationBuilder()
+    .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build())
+    .AddPolicy(AuthEndpoints.AdminPolicy, policy => policy.RequireRole("admin"));
 
 builder.Services.AddProblemDetails();
 builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
+// First run: the sample plant becomes a demo tenant with one site.
+app.Services.GetRequiredService<PlantCatalog>().SeedIfEmpty(
+    "Demo Tenant",
+    File.ReadAllText(Path.Combine(builder.Environment.ContentRootPath, builder.Configuration["Plant:ConfigPath"] ?? "data/plant.sample.json")));
+
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 app.UseCors();
+app.UseAuthentication();
+app.UseAuthorization();
 
-app.MapHealthChecks("/health");
+app.MapHealthChecks("/health").AllowAnonymous();
 
 var api = app.MapGroup("/api");
+api.MapAuthEndpoints();
+api.MapSiteEndpoints();
 api.MapPlantEndpoints();
 api.MapSensorEndpoints();
 

@@ -164,3 +164,6 @@ Thumbs.db
 
 # Local overrides
 appsettings.Local.json
+
+# Local SQLite database
+data/*.db*

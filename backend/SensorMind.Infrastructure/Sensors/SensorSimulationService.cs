@@ -4,19 +4,25 @@ using Microsoft.Extensions.Options;
 using SensorMind.Core.Plant;
 using SensorMind.Core.Sensors;
 using SensorMind.Core.Sensors.Simulation;
+using SensorMind.Infrastructure.Sites;
 
 namespace SensorMind.Infrastructure.Sensors;
 
-/// <summary>Drives the simulator: backfills history at startup, then samples every interval and publishes live.</summary>
+/// <summary>
+/// Drives one simulator per site: backfills history for new tags, then samples every interval and publishes live.
+/// Follows the catalog, so sites added, edited or deleted at runtime start, restart or stop simulating.
+/// </summary>
 internal sealed partial class SensorSimulationService(
-    PlantIndex plant,
+    PlantCatalog catalog,
     ISensorStore store,
     ReadingBroadcaster broadcaster,
     IOptions<SimulationOptions> options,
     TimeProvider time,
     ILogger<SensorSimulationService> logger) : BackgroundService
 {
-    private SensorSimulator? _simulator;
+    private readonly object _gate = new();
+    private readonly Dictionary<string, (IReadOnlyList<Tag> Tags, SensorSimulator Simulator)> _sites = [];
+    private int _seed;
 
     /// <summary>
     /// Backfills before returning. Hosted services start before the web server listens, so the API
@@ -24,45 +30,83 @@ internal sealed partial class SensorSimulationService(
     /// </summary>
     public override Task StartAsync(CancellationToken cancellationToken)
     {
-        var settings = options.Value;
-        var seed = settings.Seed ?? Random.Shared.Next();
-        _simulator = new SensorSimulator(plant.Tags, seed);
-
-        var started = time.GetTimestamp();
-        var samples = Backfill(_simulator, settings);
-        LogStarted(logger, plant.Tags.Count, seed, samples, settings.IntervalSeconds, time.GetElapsedTime(started).TotalMilliseconds);
-
+        _seed = options.Value.Seed ?? Random.Shared.Next();
+        Sync();
+        catalog.Changed += Sync;
         return base.StartAsync(cancellationToken);
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var simulator = _simulator ?? throw new InvalidOperationException("StartAsync must run before ExecuteAsync.");
-
         using var timer = new PeriodicTimer(options.Value.Interval, time);
         while (await timer.WaitForNextTickAsync(stoppingToken).ConfigureAwait(false))
         {
-            var batch = simulator.Step(time.GetUtcNow());
-            store.Append(batch);
-            broadcaster.Publish(batch);
+            lock (_gate)
+            {
+                var now = time.GetUtcNow();
+                foreach (var (_, simulator) in _sites.Values)
+                {
+                    var batch = simulator.Step(now);
+                    store.Append(batch);
+                    broadcaster.Publish(batch);
+                }
+            }
         }
     }
 
-    private int Backfill(SensorSimulator simulator, SimulationOptions settings)
+    public override void Dispose()
     {
+        catalog.Changed -= Sync;
+        base.Dispose();
+    }
+
+    private void Sync()
+    {
+        lock (_gate)
+        {
+            var plants = catalog.Plants.ToDictionary(p => p.Plant.Site.Id);
+
+            foreach (var id in _sites.Keys.Where(id => !plants.ContainsKey(id)).ToList())
+            {
+                _sites.Remove(id);
+            }
+
+            foreach (var (id, plant) in plants)
+            {
+                if (_sites.TryGetValue(id, out var current) && current.Tags.SequenceEqual(plant.Tags))
+                {
+                    continue;
+                }
+
+                var simulator = new SensorSimulator(plant.Tags, _seed);
+                _sites[id] = (plant.Tags, simulator);
+                var samples = Backfill(simulator, plant.Tags);
+                LogSynced(logger, id, plant.Tags.Count, samples);
+            }
+        }
+    }
+
+    /// <summary>Backfills only tags the store has never seen, so edits don't duplicate history of existing tags.</summary>
+    private int Backfill(SensorSimulator simulator, IReadOnlyList<Tag> tags)
+    {
+        var settings = options.Value;
+        var fresh = tags.Where(t => !store.TryGetLatest(t.Id, out _)).Select(t => t.Id).ToHashSet();
         var now = time.GetUtcNow();
         var interval = settings.Interval;
         var steps = (int)(TimeSpan.FromHours(settings.BackfillHours) / interval);
 
         for (var i = steps; i > 0; i--)
         {
-            store.Append(simulator.Step(now - (interval * i)));
+            var batch = simulator.Step(now - (interval * i));
+            if (fresh.Count > 0)
+            {
+                store.Append(new ReadingBatch(batch.Timestamp, [.. batch.Readings.Where(r => fresh.Contains(r.TagId))]));
+            }
         }
 
-        return steps;
+        return fresh.Count > 0 ? steps : 0;
     }
 
-    [LoggerMessage(Level = LogLevel.Information,
-        Message = "Sensor simulation started for {TagCount} tags (seed {Seed}), backfilled {Samples} samples per tag at {IntervalSeconds}s in {ElapsedMs:F0} ms")]
-    private static partial void LogStarted(ILogger logger, int tagCount, int seed, int samples, double intervalSeconds, double elapsedMs);
+    [LoggerMessage(Level = LogLevel.Information, Message = "Simulating site {SiteId}: {TagCount} tags, backfilled {Samples} samples per new tag")]
+    private static partial void LogSynced(ILogger logger, string siteId, int tagCount, int samples);
 }

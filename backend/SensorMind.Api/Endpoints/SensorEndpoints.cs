@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Options;
 using SensorMind.Core.Plant;
 using SensorMind.Core.Sensors;
+using SensorMind.Infrastructure.Sites;
 
 namespace SensorMind.Api.Endpoints;
 
@@ -75,11 +76,11 @@ internal static class SensorEndpoints
         DateTimeOffset? from,
         DateTimeOffset? to,
         int? maxPoints,
-        PlantIndex plant,
+        PlantCatalog catalog,
         ISensorStore store,
         TimeProvider time)
     {
-        if (!plant.TryGetTag(tagId, out var location))
+        if (!catalog.TryGetTag(tagId, out var location))
         {
             return TypedResults.NotFound($"Unknown tag '{tagId}'.");
         }

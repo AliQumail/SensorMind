@@ -40,6 +40,15 @@ export function LoginPage({ onLoggedIn }: { onLoggedIn: (user: LoginResult) => v
         <Button variant="primary" type="submit" disabled={busy || !username || !password} className="w-full">
           {busy ? 'Signing in…' : 'Sign in'}
         </Button>
+        <Button
+          onClick={() => {
+            setUsername('guest')
+            setPassword('guest')
+          }}
+          className="w-full"
+        >
+          Login as Guest
+        </Button>
       </form>
     </div>
   )

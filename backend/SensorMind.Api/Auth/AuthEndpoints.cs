@@ -3,10 +3,9 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using SensorMind.Infrastructure.Auth;
 
 namespace SensorMind.Api.Auth;
-
-internal sealed record User(string Username, string PasswordHash, string Role);
 
 internal sealed record LoginRequest(string? Username, string? Password);
 
@@ -14,17 +13,17 @@ internal static class AuthEndpoints
 {
     public const string AdminPolicy = "admin";
 
-    // Seeded in memory until there is a database. Change the password before any real deployment.
-    public static User SeedAdmin() =>
-        new("admin", new PasswordHasher<User>().HashPassword(null!, "admin"), "admin");
+    // The guest account is created on first run.
+    public static void SeedUsers(UserRepository users) =>
+        users.AddIfMissing(new User("guest", new PasswordHasher<User>().HashPassword(null!, "guest"), "guest"));
 
     public static RouteGroupBuilder MapAuthEndpoints(this RouteGroupBuilder api)
     {
         var group = api.MapGroup("/auth").WithTags("Auth");
 
-        group.MapPost("/login", (LoginRequest request, User[] users, IConfiguration config) =>
+        group.MapPost("/login", (LoginRequest request, UserRepository users, IConfiguration config) =>
         {
-            var user = users.FirstOrDefault(u => u.Username == request.Username);
+            var user = request.Username is null ? null : users.Find(request.Username);
             if (user is null || request.Password is null ||
                 new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, request.Password) == PasswordVerificationResult.Failed)
                 return Results.Unauthorized();

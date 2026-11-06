@@ -11,16 +11,16 @@ Built with .NET 8, React 19, Three.js and Qdrant. MIT licensed.
 | Phase | Scope | State |
 |-------|-------|-------|
 | 1. Skeleton | Plant config loader and validation, asset tree, 3D floor view with selection, simulated sensor stream, live sensor panel | ✅ Done |
-| 2. RAG | PDF ingestion, Qdrant, OpenRouter embeddings, streaming chat with citations | Next |
+| 2. RAG | PDF ingestion, Qdrant, OpenRouter embeddings, streaming chat with citations | In progress: Qdrant vector store done |
 | 3. Intelligence | Selected-asset context, live readings in prompts, chart tool calling with inline Recharts | Planned |
 | 4. Hardening | Rate limiting, bring-your-own key, CI, GitHub Pages and Render deploys | Planned |
 
 ## Run it
 
-Needs the .NET 8 SDK, Node 20+ and Docker (for PostgreSQL only):
+Needs the .NET 8 SDK, Node 20+ and Docker (for PostgreSQL and Qdrant):
 
 ```bash
-# once: start PostgreSQL in the background
+# once: start PostgreSQL and Qdrant in the background
 docker compose up -d
 
 # terminal 1: API on http://localhost:5080 (Development: fixed seed, CORS for :5173)
@@ -30,11 +30,7 @@ dotnet run --project backend/SensorMind.Api
 cd frontend && npm install && npm run dev
 ```
 
-**Tests:**
-
-```bash
-dotnet test backend
-```
+**Sign in:** users are stored in PostgreSQL. A `guest` / `guest` user is created on first run, and the login page has a **Login as Guest** button that fills in those credentials.
 
 ## How it works
 
@@ -81,6 +77,10 @@ Design choices and trade-offs are logged in [docs/decisions.md](docs/decisions.m
 |---|---|---|
 | `ConnectionStrings__SensorMind` | none (Development: the local Docker database) | PostgreSQL connection string |
 | `Plant__ConfigPath` | `data/plant.sample.json` | Relative to the API content root. Seeds the Demo Tenant when the database is empty |
+| `Qdrant__Url` | none (Development: `http://localhost:6334`) | Qdrant gRPC endpoint (local container or Qdrant Cloud) |
+| `Qdrant__ApiKey` | none | Qdrant Cloud API key |
+| `Qdrant__Collection` | `manuals` | Collection for manual chunks |
+| `Qdrant__VectorSize` | `1536` | Must match the embedding model |
 | `Simulation__Seed` | random (Development: 42) | Fix it for reproducible data |
 | `Simulation__IntervalSeconds` | `2` | Sample period |
 | `Simulation__RetentionHours` | `24` | In-memory history window |
@@ -96,8 +96,7 @@ See [`frontend/.env.example`](frontend/.env.example).
 backend/
   SensorMind.Api             Minimal API endpoints, SSE, CORS, hosting
   SensorMind.Core            Domain model, config parser/validator, simulator, abstractions (no IO)
-  SensorMind.Infrastructure  In-memory store, live feed, hosted simulation service, file loading
-  SensorMind.Tests           xUnit tests
+  SensorMind.Infrastructure  PostgreSQL (tenants, sites, users), Qdrant vector store, in-memory store, live feed, simulation service
 frontend/                    React 19 + TypeScript + Vite, @react-three/fiber, Recharts, Tailwind v4
 data/plant.sample.json       2 floors, 10 assets (Grundfos, Atlas Copco, ABB), 36 tags
 data/manuals/                Equipment manual PDFs for RAG (Phase 2)

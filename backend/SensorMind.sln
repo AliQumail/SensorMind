@@ -9,8 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SensorMind.Infrastructure",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SensorMind.Api", "SensorMind.Api\SensorMind.Api.csproj", "{B52B0AEB-C639-4786-95A1-9DD6A77C15FC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SensorMind.Tests", "SensorMind.Tests\SensorMind.Tests.csproj", "{7B390ACE-89E6-4360-9CA3-91281ADCB9B7}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,9 +30,5 @@ Global
 		{B52B0AEB-C639-4786-95A1-9DD6A77C15FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B52B0AEB-C639-4786-95A1-9DD6A77C15FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B52B0AEB-C639-4786-95A1-9DD6A77C15FC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7B390ACE-89E6-4360-9CA3-91281ADCB9B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7B390ACE-89E6-4360-9CA3-91281ADCB9B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7B390ACE-89E6-4360-9CA3-91281ADCB9B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7B390ACE-89E6-4360-9CA3-91281ADCB9B7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

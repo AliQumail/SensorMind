@@ -1,4 +1,4 @@
-# Local PostgreSQL for development: docker compose up -d
+# Local PostgreSQL and Qdrant for development: docker compose up -d
 name: sensormind
 
 services:
@@ -14,5 +14,15 @@ services:
       - postgres-data:/var/lib/postgresql/data
     restart: unless-stopped
 
+  qdrant:
+    image: qdrant/qdrant:v1.17.0
+    ports:
+      - "127.0.0.1:6333:6333"
+      - "127.0.0.1:6334:6334"
+    volumes:
+      - qdrant-data:/qdrant/storage
+    restart: unless-stopped
+
 volumes:
   postgres-data:
+  qdrant-data:

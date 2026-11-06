@@ -39,3 +39,18 @@ Where the spec was ambiguous, or where implementation forced a choice, this file
 | # | Decision | Why |
 |---|----------|-----|
 | 21 | Sample motors are **ABB M3BP**, and the process tank is "Generic". | The spec lists Grundfos and Atlas Copco for pumps and compressors but names no motor vendor. Manuals for the RAG phase match the Grundfos (CR, NB, DDA) and Atlas Copco (GA 37 VSD+) models in the sample. |
+
+## Auth
+
+| # | Decision | Why |
+|---|----------|-----|
+| 22 | **Users live in PostgreSQL** (`users`: username, password hash, role), hashed with ASP.NET Core `PasswordHasher`. The only seeded user is `guest` / `guest` (role `guest`), created at startup if missing. There is no admin user. | No hardcoded credentials in code paths. Without an `admin` user, the tenant create/edit/delete endpoints (admin policy) are unreachable until one is added to the table. |
+| 23 | **Users are not tied to a tenant.** | Auth had no tenant concept before. Every signed-in user sees all tenants' sites. |
+
+## Phase 2: RAG
+
+| # | Decision | Why |
+|---|----------|-----|
+| 24 | **`ManualVectorStore`** wraps the official `Qdrant.Client` (gRPC, port 6334). Payload: `text`, `source_file`, `page`, `document_hash`, and optional `manufacturer`, `model`. Cosine distance. | Ingestion can skip a document whose hash is already stored, and search can filter by the selected equipment's manufacturer/model. |
+| 25 | **One shared collection, no tenant filter.** | Manuals are global files in `data/manuals`, not per tenant. |
+| 26 | **Vector size is config** (`Qdrant:VectorSize`, default 1536). | It must match the embedding model, which is not chosen yet. |

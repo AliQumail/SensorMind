@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using SensorMind.Api.Auth;
 using SensorMind.Api.Endpoints;
 using SensorMind.Infrastructure;
+using SensorMind.Infrastructure.Auth;
 using SensorMind.Infrastructure.Sites;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,7 +26,6 @@ var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
     policy.WithOrigins(allowedOrigins).AllowAnyHeader().WithMethods("GET", "POST", "PUT", "DELETE")));
 
-builder.Services.AddSingleton(new[] { AuthEndpoints.SeedAdmin() });
 var signingKey = AuthEndpoints.SigningKey(builder.Configuration);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -66,6 +66,7 @@ var app = builder.Build();
 app.Services.GetRequiredService<PlantCatalog>().SeedIfEmpty(
     "Demo Tenant",
     File.ReadAllText(Path.Combine(builder.Environment.ContentRootPath, builder.Configuration["Plant:ConfigPath"] ?? "data/plant.sample.json")));
+AuthEndpoints.SeedUsers(app.Services.GetRequiredService<UserRepository>());
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();

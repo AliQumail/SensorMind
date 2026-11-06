@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import type { Equipment, TagStatus } from '../../api/types'
-import { floorEquipment, siteEquipment } from '../../lib/plantIndex'
-import { equipmentStatus, worstStatus } from '../../lib/status'
+import type { Asset, TagStatus } from '../../api/types'
+import { floorAssets, siteAssets } from '../../lib/plantIndex'
+import { assetStatus, worstStatus } from '../../lib/status'
 import { usePlant, type Selection, type SelectionKind } from '../../state/plantContext'
 import { useReadings } from '../../state/readingsStore'
 import { StatusDot } from '../sensors/StatusBadge'
@@ -11,17 +11,17 @@ export function AssetTree() {
   const readings = useReadings()
   const site = index.plant.site
   const [expanded, setExpanded] = useState<Set<string>>(
-    () => new Set([site.id, ...index.floors.map((f) => f.id), ...index.groupById.keys()]),
+    () => new Set([site.id, ...index.floors.map((f) => f.id)]),
   )
 
   // Reveal the selected node when it is chosen elsewhere (e.g. by clicking in 3D).
   useEffect(() => {
-    if (selection?.kind !== 'equipment') return
-    const entry = index.equipmentById.get(selection.id)
+    if (selection?.kind !== 'asset') return
+    const entry = index.assetById.get(selection.id)
     if (!entry) return
     setExpanded((prev) => {
-      if (prev.has(entry.floor.id) && prev.has(entry.group.id)) return prev
-      return new Set([...prev, site.id, entry.floor.id, entry.group.id])
+      if (prev.has(entry.floor.id)) return prev
+      return new Set([...prev, site.id, entry.floor.id])
     })
   }, [selection, index, site.id])
 
@@ -33,7 +33,7 @@ export function AssetTree() {
       return next
     })
 
-  const statusOf = (equipment: Equipment[]) => worstStatus(equipment.map((e) => equipmentStatus(e, readings)))
+  const statusOf = (assets: Asset[]) => worstStatus(assets.map((e) => assetStatus(e, readings)))
 
   const nodeProps = (kind: SelectionKind, id: string) => ({
     selected: selection?.kind === kind && selection.id === id,
@@ -45,7 +45,7 @@ export function AssetTree() {
       <TreeNode
         label={site.name}
         depth={0}
-        status={statusOf(siteEquipment(index))}
+        status={statusOf(siteAssets(index))}
         expanded={expanded.has(site.id)}
         onToggle={() => toggle(site.id)}
         {...nodeProps('site', site.id)}
@@ -56,32 +56,19 @@ export function AssetTree() {
             label={floor.name}
             meta={`L${floor.level}`}
             depth={1}
-            status={statusOf(floorEquipment(floor))}
+            status={statusOf(floorAssets(floor))}
             expanded={expanded.has(floor.id)}
             onToggle={() => toggle(floor.id)}
             {...nodeProps('floor', floor.id)}
           >
-            {floor.groups.map((group) => (
+            {floor.assets.map((asset) => (
               <TreeNode
-                key={group.id}
-                label={group.name}
-                meta={String(group.equipment.length)}
+                key={asset.id}
+                label={asset.name}
                 depth={2}
-                status={statusOf(group.equipment)}
-                expanded={expanded.has(group.id)}
-                onToggle={() => toggle(group.id)}
-                {...nodeProps('group', group.id)}
-              >
-                {group.equipment.map((equipment) => (
-                  <TreeNode
-                    key={equipment.id}
-                    label={equipment.name}
-                    depth={3}
-                    status={equipmentStatus(equipment, readings)}
-                    {...nodeProps('equipment', equipment.id)}
-                  />
-                ))}
-              </TreeNode>
+                status={assetStatus(asset, readings)}
+                {...nodeProps('asset', asset.id)}
+              />
             ))}
           </TreeNode>
         ))}
@@ -130,7 +117,7 @@ function TreeNode({ label, meta, depth, status, selected, onSelect, expanded, on
         <button
           type="button"
           onClick={onSelect}
-          className={`flex min-w-0 flex-1 items-center gap-2 py-1.5 text-left ${depth < 3 ? 'font-medium' : ''}`}
+          className={`flex min-w-0 flex-1 items-center gap-2 py-1.5 text-left ${depth < 2 ? 'font-medium' : ''}`}
         >
           <StatusDot status={status} />
           <span className="truncate">{label}</span>

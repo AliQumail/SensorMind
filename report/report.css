@@ -1,0 +1,46 @@
+@page { size: A4; margin: 14mm 16mm 14mm 16mm; }
+
+* { box-sizing: border-box; }
+html { font-family: "Times New Roman", Times, serif; font-size: 10pt; color: #000; }
+body { margin: 0; line-height: 1.24; text-align: justify; hyphens: auto; }
+
+p { margin: 0; text-indent: 1.2em; }
+p.first, p.journal, p.author, p.affil, .abstract p { text-indent: 0; }
+
+.journal { font-size: 6.9pt; margin: 0 0 5mm 4mm; text-align: left; white-space: nowrap; }
+.title { font-size: 17pt; line-height: 1.2; text-align: center; margin: 0 0 4mm; font-weight: bold; }
+.author { text-align: center; font-size: 11.5pt; margin: 0 0 1mm; }
+.affil { text-align: center; font-style: italic; font-size: 9.5pt; margin: 0 0 4mm; }
+sup { font-size: 70%; line-height: 0; }
+
+.abstract { font-size: 10pt; margin: 0 9mm 3mm; line-height: 1.22; }
+.abstract p + p { margin-top: 1.2mm; }
+
+h2 { font-size: 12.5pt; font-weight: bold; margin: 4.2mm 0 1.6mm; text-align: left; break-after: avoid; }
+h3 { font-size: 10pt; font-weight: normal; font-style: italic; margin: 2.6mm 0 1mm; text-align: left; break-after: avoid; }
+
+ul { margin: 1mm 0 1mm; padding-left: 7mm; }
+li { margin: 0 0 0.6mm; }
+
+figure { margin: 2.5mm 0; text-align: center; break-inside: avoid; }
+figure svg, figure > img { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+figure.wide svg { width: 94%; }
+figure.main img { width: 84%; }
+figure.wide.f1 svg { width: 86%; }
+figure.wide.f2 svg { width: 94%; }
+figcaption { font-size: 9pt; margin-top: 1.5mm; text-align: justify; text-indent: 0; line-height: 1.2; }
+
+.row { display: flex; justify-content: center; align-items: flex-end; gap: 3%; }
+.cell { text-align: center; }
+.cell img { width: 100%; display: block; border: 0.3pt solid #999; }
+.sub { display: block; font-size: 9pt; margin-top: 0.8mm; }
+
+table { width: 100%; border-collapse: collapse; font-size: 8.8pt; margin: 2mm 0; break-inside: avoid; text-align: left; }
+caption { caption-side: top; font-size: 9pt; text-align: left; padding-bottom: 1.2mm; }
+th, td { padding: 0.6mm 1.6mm; vertical-align: top; }
+thead th { border-top: 0.8pt solid #000; border-bottom: 0.5pt solid #000; }
+tbody tr:last-child td { border-bottom: 0.8pt solid #000; }
+
+ol.refs { font-size: 8.6pt; margin: 0; padding-left: 6mm; line-height: 1.2; }
+ol.refs li { margin-bottom: 0.8mm; text-align: left; }
+h2.refs { margin-top: 3mm; }

@@ -3,8 +3,8 @@ import { Canvas, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import type { PerspectiveCamera, Vector3 } from 'three'
 import type { Floor } from '../../api/types'
-import { groupBounds, toWorld } from '../../lib/sceneGeometry'
-import { STATUS_LABEL, equipmentStatus } from '../../lib/status'
+import { toWorld } from '../../lib/sceneGeometry'
+import { STATUS_LABEL, assetStatus } from '../../lib/status'
 import { usePlant } from '../../state/plantContext'
 import { useReadings } from '../../state/readingsStore'
 import { getThemeColors } from '../../theme/themeColors'
@@ -64,46 +64,27 @@ export function PlantScene() {
   )
 }
 
-/** DOM overlay: group names, plus a name card for the hovered or selected equipment. */
+/** DOM overlay: a name card for the hovered or selected asset. */
 function FloorLabels({ floor, hoveredId, registry }: { floor: Floor; hoveredId: string | null; registry: SceneLabelRegistry }) {
-  const { index, selection, select } = usePlant()
+  const { index, selection } = usePlant()
   const readings = useReadings()
-  const selectedId = selection?.kind === 'equipment' ? selection.id : null
+  const selectedId = selection?.kind === 'asset' ? selection.id : null
   const cardIds = [...new Set([hoveredId, selectedId])].filter((id): id is string => id !== null)
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
-      {floor.groups.map((group) => {
-        const bounds = groupBounds(group, floor)
-        if (!bounds) return null
-        const selected = selection?.kind === 'group' && selection.id === group.id
-        return (
-          <SceneLabel key={group.id} registry={registry} id={`group:${group.id}`} at={toWorld(floor, bounds.minX, 0, bounds.maxZ)} placement="below-right">
-            <button
-              type="button"
-              onClick={() => select({ kind: 'group', id: group.id })}
-              className={`pointer-events-auto rounded-md px-1.5 py-0.5 text-[11px] font-medium tracking-wide whitespace-nowrap uppercase transition-colors ${
-                selected ? 'bg-accent-hover text-white' : 'text-text-muted hover:bg-surface-hover hover:text-text'
-              }`}
-            >
-              {group.name}
-            </button>
-          </SceneLabel>
-        )
-      })}
-
       {cardIds.map((id) => {
-        const entry = index.equipmentById.get(id)
+        const entry = index.assetById.get(id)
         if (!entry || entry.floor.id !== floor.id) return null
-        const { equipment } = entry
-        const { position, size } = equipment.placement
-        const status = equipmentStatus(equipment, readings)
+        const { asset } = entry
+        const { position, size } = asset.placement
+        const status = assetStatus(asset, readings)
         return (
-          <SceneLabel key={id} registry={registry} id={`equipment:${id}`} at={toWorld(floor, position.x, position.y + size.y + 0.25, position.z)}>
+          <SceneLabel key={id} registry={registry} id={`asset:${id}`} at={toWorld(floor, position.x, position.y + size.y + 0.25, position.z)}>
             <div className="rounded-lg border border-border bg-surface-raised/95 px-2.5 py-1.5 text-xs whitespace-nowrap shadow-soft">
-              <div className="font-semibold text-text">{equipment.name}</div>
+              <div className="font-semibold text-text">{asset.name}</div>
               <div className="text-text-muted">
-                {equipment.manufacturer} {equipment.model}
+                {asset.manufacturer} {asset.model}
                 {status && <> · {STATUS_LABEL[status]}</>}
               </div>
             </div>

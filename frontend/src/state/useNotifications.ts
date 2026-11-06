@@ -10,7 +10,7 @@ const MAX_NOTIFICATIONS = 50
 export interface Notification {
   id: string
   severity: 'warning' | 'alarm'
-  equipmentId: string
+  assetId: string
   title: string
   location: string
   message: string
@@ -32,25 +32,23 @@ export function useNotifications() {
   useEffect(() => {
     const fresh: Notification[] = []
     for (const floor of index.floors) {
-      for (const group of floor.groups) {
-        for (const equipment of group.equipment) {
-          for (const tag of equipment.tags) {
-            const reading = readings.get(tag.id)
-            if (!reading) continue
-            const previous = seen.current.get(tag.id)
-            seen.current.set(tag.id, reading.status)
-            if (reading.status === 'normal' || reading.status === previous) continue
-            fresh.push({
-              id: `${tag.id}:${reading.ts}`,
-              severity: reading.status,
-              equipmentId: equipment.id,
-              title: `${equipment.name}: ${tag.name}`,
-              location: `${floor.name} · ${group.name}`,
-              message: `${formatValue(reading.value, tag.nominalMin, tag.nominalMax)} ${tag.unit}`,
-              ts: reading.ts,
-              read: false,
-            })
-          }
+      for (const asset of floor.assets) {
+        for (const tag of asset.tags) {
+          const reading = readings.get(tag.id)
+          if (!reading) continue
+          const previous = seen.current.get(tag.id)
+          seen.current.set(tag.id, reading.status)
+          if (reading.status === 'normal' || reading.status === previous) continue
+          fresh.push({
+            id: `${tag.id}:${reading.ts}`,
+            severity: reading.status,
+            assetId: asset.id,
+            title: `${asset.name}: ${tag.name}`,
+            location: floor.name,
+            message: `${formatValue(reading.value, tag.nominalMin, tag.nominalMax)} ${tag.unit}`,
+            ts: reading.ts,
+            read: false,
+          })
         }
       }
     }

@@ -1,5 +1,5 @@
-import { floorEquipment } from '../../lib/plantIndex'
-import { equipmentStatus, worstStatus } from '../../lib/status'
+import { floorAssets } from '../../lib/plantIndex'
+import { assetStatus, worstStatus } from '../../lib/status'
 import { usePlant } from '../../state/plantContext'
 import { useReadings } from '../../state/readingsStore'
 import { StatusDot } from '../sensors/StatusBadge'
@@ -16,7 +16,7 @@ export function FloorSwitcher() {
     >
       {index.floors.map((floor) => {
         const active = floor.id === activeFloorId
-        const status = worstStatus(floorEquipment(floor).map((e) => equipmentStatus(e, readings)))
+        const status = worstStatus(floorAssets(floor).map((e) => assetStatus(e, readings)))
         return (
           <button
             key={floor.id}

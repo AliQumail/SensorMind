@@ -135,7 +135,7 @@ function Bell() {
           items={items}
           onClear={clear}
           onSelect={(n) => {
-            select({ kind: 'equipment', id: n.equipmentId })
+            select({ kind: 'asset', id: n.assetId })
             setOpen(false)
           }}
         />

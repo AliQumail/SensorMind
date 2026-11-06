@@ -1,12 +1,12 @@
 namespace SensorMind.Core.Plant;
 
-/// <summary>A tag together with the equipment and floor it belongs to.</summary>
-public sealed record TagLocation(Tag Tag, Equipment Equipment, Floor Floor);
+/// <summary>A tag together with the asset and floor it belongs to.</summary>
+public sealed record TagLocation(Tag Tag, Asset Asset, Floor Floor);
 
 /// <summary>Read-only lookups over a validated plant. Ids are unique per kind, which the parser guarantees.</summary>
 public sealed class PlantIndex
 {
-    private readonly Dictionary<string, Equipment> _equipment = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, Asset> _assets = new(StringComparer.Ordinal);
     private readonly Dictionary<string, TagLocation> _tags = new(StringComparer.Ordinal);
 
     public PlantIndex(PlantModel plant)
@@ -16,12 +16,12 @@ public sealed class PlantIndex
 
         foreach (var floor in plant.Site.Floors)
         {
-            foreach (var equipment in floor.Groups.SelectMany(g => g.Equipment))
+            foreach (var asset in floor.Assets)
             {
-                _equipment.Add(equipment.Id, equipment);
-                foreach (var tag in equipment.Tags)
+                _assets.Add(asset.Id, asset);
+                foreach (var tag in asset.Tags)
                 {
-                    _tags.Add(tag.Id, new TagLocation(tag, equipment, floor));
+                    _tags.Add(tag.Id, new TagLocation(tag, asset, floor));
                 }
             }
         }
@@ -34,10 +34,10 @@ public sealed class PlantIndex
 
     public IReadOnlyList<Tag> Tags { get; }
 
-    public IReadOnlyCollection<Equipment> Equipment => _equipment.Values;
+    public IReadOnlyCollection<Asset> Assets => _assets.Values;
 
-    public bool TryGetEquipment(string id, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out Equipment? equipment) =>
-        _equipment.TryGetValue(id, out equipment);
+    public bool TryGetAsset(string id, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out Asset? asset) =>
+        _assets.TryGetValue(id, out asset);
 
     public bool TryGetTag(string id, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out TagLocation? location) =>
         _tags.TryGetValue(id, out location);

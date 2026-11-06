@@ -15,7 +15,6 @@ const TOKENS = {
   alarm: '--status-alarm',
   floor: '--scene-floor',
   grid: '--scene-grid',
-  zone: '--scene-zone',
   light: '--scene-light',
   pump: '--equip-pump',
   compressor: '--equip-compressor',

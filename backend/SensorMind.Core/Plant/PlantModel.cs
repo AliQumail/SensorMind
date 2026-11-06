@@ -1,6 +1,6 @@
 namespace SensorMind.Core.Plant;
 
-// Validated, immutable plant model. Hierarchy: Site -> Floor -> Group -> Equipment -> Tag.
+// Validated, immutable plant model. Hierarchy: Site -> Floor -> Asset -> Tag.
 // Instances are only produced by PlantConfigParser, so consumers can rely on the invariants
 // it enforces (unique ids, nominalMin < nominalMax, footprint inside the floor, ...).
 
@@ -8,17 +8,15 @@ public sealed record PlantModel(int SchemaVersion, Site Site);
 
 public sealed record Site(string Id, string Name, string? Location, IReadOnlyList<Floor> Floors);
 
-/// <param name="Size">Floor footprint in metres. Equipment positions use the floor's corner as origin.</param>
-public sealed record Floor(string Id, string Name, int Level, FloorSize Size, IReadOnlyList<EquipmentGroup> Groups);
+/// <param name="Size">Floor footprint in metres. Asset positions use the floor's corner as origin.</param>
+public sealed record Floor(string Id, string Name, int Level, FloorSize Size, IReadOnlyList<Asset> Assets);
 
 public sealed record FloorSize(double Width, double Depth);
 
-public sealed record EquipmentGroup(string Id, string Name, IReadOnlyList<Equipment> Equipment);
-
-public sealed record Equipment(
+public sealed record Asset(
     string Id,
     string Name,
-    EquipmentType Type,
+    AssetType Type,
     string Manufacturer,
     string Model,
     string? Description,
@@ -28,7 +26,7 @@ public sealed record Equipment(
 /// <param name="Position">Centre of the footprint (x, z) in metres from the floor origin; y is the base elevation.</param>
 /// <param name="Size">Bounding box dimensions in metres.</param>
 /// <param name="RotationDeg">Rotation around the vertical axis, in degrees.</param>
-public sealed record Placement(Vector3 Position, Vector3 Size, double RotationDeg, EquipmentShape Shape);
+public sealed record Placement(Vector3 Position, Vector3 Size, double RotationDeg, AssetShape Shape);
 
 public readonly record struct Vector3(double X, double Y, double Z);
 
@@ -42,7 +40,7 @@ public sealed record Tag(
     double? AlarmLow,
     double? AlarmHigh);
 
-public enum EquipmentType
+public enum AssetType
 {
     Pump,
     Compressor,
@@ -54,7 +52,7 @@ public enum EquipmentType
     Other,
 }
 
-public enum EquipmentShape
+public enum AssetShape
 {
     Box,
     Cylinder,

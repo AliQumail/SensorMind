@@ -27,10 +27,8 @@ function floorOf(index: PlantIndex, selection: NonNullable<Selection>): string |
   switch (selection.kind) {
     case 'floor':
       return selection.id
-    case 'group':
-      return index.groupById.get(selection.id)?.floor.id
-    case 'equipment':
-      return index.equipmentById.get(selection.id)?.floor.id
+    case 'asset':
+      return index.assetById.get(selection.id)?.floor.id
     default:
       return undefined
   }

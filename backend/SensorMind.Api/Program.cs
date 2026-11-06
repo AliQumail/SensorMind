@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using SensorMind.Api.Auth;
+using SensorMind.Api.Chat;
 using SensorMind.Api.Endpoints;
 using SensorMind.Infrastructure;
 using SensorMind.Infrastructure.Auth;
@@ -57,6 +58,7 @@ builder.Services.AddAuthorizationBuilder()
     .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build())
     .AddPolicy(AuthEndpoints.AdminPolicy, policy => policy.RequireRole("admin"));
 
+builder.Services.AddSingleton<ChatRateLimiter>();
 builder.Services.AddProblemDetails();
 builder.Services.AddHealthChecks();
 
@@ -81,6 +83,7 @@ api.MapAuthEndpoints();
 api.MapSiteEndpoints();
 api.MapPlantEndpoints();
 api.MapSensorEndpoints();
+api.MapChatEndpoints();
 
 app.Run();
 

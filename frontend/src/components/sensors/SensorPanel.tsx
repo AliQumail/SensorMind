@@ -1,7 +1,7 @@
-import type { Equipment } from '../../api/types'
-import { formatEquipmentType } from '../../lib/format'
-import { floorEquipment, siteEquipment } from '../../lib/plantIndex'
-import { equipmentStatus, statusSeverity } from '../../lib/status'
+import type { Asset } from '../../api/types'
+import { formatAssetType } from '../../lib/format'
+import { floorAssets, siteAssets } from '../../lib/plantIndex'
+import { assetStatus, statusSeverity } from '../../lib/status'
 import { usePlant } from '../../state/plantContext'
 import { useReadings } from '../../state/readingsStore'
 import { StatusBadge, StatusDot } from './StatusBadge'
@@ -10,45 +10,41 @@ import { TagRow } from './TagRow'
 export function SensorPanel() {
   const { index, selection, activeFloorId } = usePlant()
 
-  if (selection?.kind === 'equipment') {
-    const entry = index.equipmentById.get(selection.id)
-    if (entry) return <EquipmentDetail equipment={entry.equipment} context={`${entry.floor.name} · ${entry.group.name}`} />
+  if (selection?.kind === 'asset') {
+    const entry = index.assetById.get(selection.id)
+    if (entry) return <AssetDetail asset={entry.asset} context={entry.floor.name} />
   }
 
   // Anything else shows an overview of the selected scope (defaulting to the visible floor).
   if (selection?.kind === 'site') {
-    return <Overview title={index.plant.site.name} subtitle="All floors" equipment={siteEquipment(index)} />
-  }
-  if (selection?.kind === 'group') {
-    const entry = index.groupById.get(selection.id)
-    if (entry) return <Overview title={entry.group.name} subtitle={entry.floor.name} equipment={entry.group.equipment} />
+    return <Overview title={index.plant.site.name} subtitle="All floors" assets={siteAssets(index)} />
   }
   const floor = index.floorById.get(selection?.kind === 'floor' ? selection.id : activeFloorId) ?? index.floors[0]
-  return <Overview title={floor.name} subtitle="Select equipment in the tree or 3D view" equipment={floorEquipment(floor)} />
+  return <Overview title={floor.name} subtitle="Select an asset in the tree or 3D view" assets={floorAssets(floor)} />
 }
 
-function EquipmentDetail({ equipment, context }: { equipment: Equipment; context: string }) {
+function AssetDetail({ asset, context }: { asset: Asset; context: string }) {
   const readings = useReadings()
 
   return (
-    <section aria-label={`Sensors for ${equipment.name}`} className="flex h-full min-h-0 flex-col">
+    <section aria-label={`Sensors for ${asset.name}`} className="flex h-full min-h-0 flex-col">
       <header className="border-b border-border px-4 pt-4 pb-3">
         <p className="text-xs font-medium tracking-wide text-text-muted uppercase">{context}</p>
         <div className="mt-1 flex items-start justify-between gap-3">
-          <h2 className="text-lg leading-tight font-semibold">{equipment.name}</h2>
-          <StatusBadge status={equipmentStatus(equipment, readings)} />
+          <h2 className="text-lg leading-tight font-semibold">{asset.name}</h2>
+          <StatusBadge status={assetStatus(asset, readings)} />
         </div>
         <p className="mt-1 text-sm text-text-muted">
-          {formatEquipmentType(equipment.type)} · {equipment.manufacturer} {equipment.model}
+          {formatAssetType(asset.type)} · {asset.manufacturer} {asset.model}
         </p>
-        {equipment.description && <p className="mt-2 text-sm leading-relaxed">{equipment.description}</p>}
+        {asset.description && <p className="mt-2 text-sm leading-relaxed">{asset.description}</p>}
       </header>
 
-      {equipment.tags.length === 0 ? (
+      {asset.tags.length === 0 ? (
         <p className="p-4 text-sm text-text-muted">This asset has no sensor tags.</p>
       ) : (
         <ul className="min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
-          {equipment.tags.map((tag) => (
+          {asset.tags.map((tag) => (
             <TagRow key={tag.id} tag={tag} />
           ))}
         </ul>
@@ -57,13 +53,13 @@ function EquipmentDetail({ equipment, context }: { equipment: Equipment; context
   )
 }
 
-function Overview({ title, subtitle, equipment }: { title: string; subtitle: string; equipment: Equipment[] }) {
+function Overview({ title, subtitle, assets }: { title: string; subtitle: string; assets: Asset[] }) {
   const { select } = usePlant()
   const readings = useReadings()
 
-  const rows = equipment
-    .map((e) => ({ equipment: e, status: equipmentStatus(e, readings) }))
-    .sort((a, b) => statusSeverity(b.status) - statusSeverity(a.status) || a.equipment.name.localeCompare(b.equipment.name))
+  const rows = assets
+    .map((e) => ({ asset: e, status: assetStatus(e, readings) }))
+    .sort((a, b) => statusSeverity(b.status) - statusSeverity(a.status) || a.asset.name.localeCompare(b.asset.name))
   const alarms = rows.filter((r) => r.status === 'alarm').length
   const warnings = rows.filter((r) => r.status === 'warning').length
 
@@ -79,11 +75,11 @@ function Overview({ title, subtitle, equipment }: { title: string; subtitle: str
         </dl>
       </header>
       <ul className="min-h-0 flex-1 space-y-1 overflow-y-auto p-2">
-        {rows.map(({ equipment: e, status }) => (
+        {rows.map(({ asset: e, status }) => (
           <li key={e.id}>
             <button
               type="button"
-              onClick={() => select({ kind: 'equipment', id: e.id })}
+              onClick={() => select({ kind: 'asset', id: e.id })}
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors hover:bg-surface-hover"
             >
               <StatusDot status={status} />

@@ -233,7 +233,7 @@ public sealed class PlantCatalog
             }
 
             errors.AddRange(plant.Site.Floors
-                .SelectMany(f => f.Groups).SelectMany(g => g.Equipment).SelectMany(e => e.Tags)
+                .SelectMany(f => f.Assets).SelectMany(e => e.Tags)
                 .Where(t => !tagIds.Add(t.Id))
                 .Select(t => new ConfigError(path, $"Tag id '{t.Id}' is already used by another site.")));
         }
@@ -246,10 +246,16 @@ public sealed class PlantCatalog
         var plants = new Dictionary<string, PlantIndex>();
         foreach (var site in _repository.GetSites())
         {
-            if (PlantConfigParser.Parse(site.ConfigJson).Plant is { } plant)
+            var result = PlantConfigParser.Parse(site.ConfigJson);
+            if (result.Plant is null)
             {
-                plants[site.Id] = new PlantIndex(plant);
+                // A row saved before the Floor > Asset model (floors[].groups[].equipment[]) lands here after an upgrade.
+                throw new InvalidOperationException(
+                    $"Stored site '{site.Id}' does not match the current plant format: {string.Join("; ", result.Errors.Take(3))}. " +
+                    "If it was saved with groups and equipment, run the one-off conversion in docs/plant-config.md.");
             }
+
+            plants[site.Id] = new PlantIndex(result.Plant);
         }
 
         _plants = plants;

@@ -1,8 +1,7 @@
-import type { Equipment, EquipmentGroup, Floor, Plant } from '../api/types'
+import type { Asset, Floor, Plant } from '../api/types'
 
-export interface EquipmentEntry {
-  equipment: Equipment
-  group: EquipmentGroup
+export interface AssetEntry {
+  asset: Asset
   floor: Floor
 }
 
@@ -10,29 +9,24 @@ export interface PlantIndex {
   plant: Plant
   floors: Floor[]
   floorById: Map<string, Floor>
-  groupById: Map<string, { group: EquipmentGroup; floor: Floor }>
-  equipmentById: Map<string, EquipmentEntry>
+  assetById: Map<string, AssetEntry>
 }
 
 export function buildPlantIndex(plant: Plant): PlantIndex {
   const floors = [...plant.site.floors].sort((a, b) => a.level - b.level)
   const floorById = new Map<string, Floor>()
-  const groupById = new Map<string, { group: EquipmentGroup; floor: Floor }>()
-  const equipmentById = new Map<string, EquipmentEntry>()
+  const assetById = new Map<string, AssetEntry>()
 
   for (const floor of floors) {
     floorById.set(floor.id, floor)
-    for (const group of floor.groups) {
-      groupById.set(group.id, { group, floor })
-      for (const equipment of group.equipment) {
-        equipmentById.set(equipment.id, { equipment, group, floor })
-      }
+    for (const asset of floor.assets) {
+      assetById.set(asset.id, { asset, floor })
     }
   }
 
-  return { plant, floors, floorById, groupById, equipmentById }
+  return { plant, floors, floorById, assetById }
 }
 
-export const floorEquipment = (floor: Floor) => floor.groups.flatMap((g) => g.equipment)
+export const floorAssets = (floor: Floor) => floor.assets
 
-export const siteEquipment = (index: PlantIndex) => index.floors.flatMap(floorEquipment)
+export const siteAssets = (index: PlantIndex) => index.floors.flatMap(floorAssets)

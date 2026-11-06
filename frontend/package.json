@@ -16,6 +16,7 @@
     "@react-three/fiber": "^9.8.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-markdown": "^10.1.0",
     "recharts": "^3.10.1",
     "three": "^0.186.1"
   },

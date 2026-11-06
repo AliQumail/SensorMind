@@ -34,7 +34,7 @@ internal sealed class FloorDocument : DocumentBase
     public string? Name { get; init; }
     public int? Level { get; init; }
     public FloorSizeDocument? Size { get; init; }
-    public List<GroupDocument?>? Groups { get; init; }
+    public List<AssetDocument?>? Assets { get; init; }
 }
 
 internal sealed class FloorSizeDocument : DocumentBase
@@ -43,14 +43,7 @@ internal sealed class FloorSizeDocument : DocumentBase
     public double? Depth { get; init; }
 }
 
-internal sealed class GroupDocument : DocumentBase
-{
-    public string? Id { get; init; }
-    public string? Name { get; init; }
-    public List<EquipmentDocument?>? Equipment { get; init; }
-}
-
-internal sealed class EquipmentDocument : DocumentBase
+internal sealed class AssetDocument : DocumentBase
 {
     public string? Id { get; init; }
     public string? Name { get; init; }

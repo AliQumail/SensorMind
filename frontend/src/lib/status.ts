@@ -1,4 +1,4 @@
-import type { Equipment, Reading, TagStatus } from '../api/types'
+import type { Asset, Reading, TagStatus } from '../api/types'
 
 const SEVERITY: Record<TagStatus, number> = { normal: 0, warning: 1, alarm: 2 }
 
@@ -13,7 +13,7 @@ export function worstStatus(statuses: Iterable<TagStatus | undefined>): TagStatu
   return worst
 }
 
-export const equipmentStatus = (equipment: Equipment, readings: ReadonlyMap<string, Reading>) =>
-  worstStatus(equipment.tags.map((t) => readings.get(t.id)?.status))
+export const assetStatus = (asset: Asset, readings: ReadonlyMap<string, Reading>) =>
+  worstStatus(asset.tags.map((t) => readings.get(t.id)?.status))
 
 export const statusSeverity = (status: TagStatus | undefined) => (status ? SEVERITY[status] : -1)

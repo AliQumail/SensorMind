@@ -1,13 +1,12 @@
 import {
-  EQUIPMENT_SHAPES,
-  EQUIPMENT_TEMPLATES,
-  EQUIPMENT_TYPES,
-  newEquipment,
+  ASSET_SHAPES,
+  ASSET_TEMPLATES,
+  ASSET_TYPES,
+  newAsset,
   slug,
   uniqueId,
-  type EquipmentConfig,
+  type AssetConfig,
   type FloorConfig,
-  type GroupConfig,
   type SiteConfig,
   type TagConfig,
 } from './siteConfig'
@@ -41,7 +40,7 @@ export function SiteForm({ config, onChange }: { config: SiteConfig; onChange: (
         onClick={() =>
           edit((d) => {
             const id = uniqueId('floor', new Set(d.site.floors.map((f) => f.id)))
-            d.site.floors.push({ id, name: 'New Floor', level: d.site.floors.length, size: { width: 30, depth: 18 }, groups: [] })
+            d.site.floors.push({ id, name: 'New Floor', level: d.site.floors.length, size: { width: 30, depth: 18 }, assets: [] })
           })
         }
       >
@@ -78,120 +77,90 @@ function FloorCard({ floor, config, edit, fi }: { floor: FloorConfig; config: Si
         </Button>
       </div>
 
-      {floor.groups.map((group, gi) => (
-        <GroupCard key={gi} group={group} edit={edit} fi={fi} gi={gi} />
-      ))}
-
-      <Button
-        onClick={() =>
-          edit((d) => {
-            const taken = new Set(d.site.floors.flatMap((f) => f.groups.map((g) => g.id)))
-            d.site.floors[fi].groups.push({ id: uniqueId('grp-group', taken), name: 'New Group', equipment: [] })
-          })
-        }
-      >
-        + Add group
-      </Button>
-    </section>
-  )
-}
-
-function GroupCard({ group, edit, fi, gi }: { group: GroupConfig; edit: Edit; fi: number; gi: number }) {
-  return (
-    <div className="space-y-3 rounded-lg border border-border bg-surface p-3">
-      <div className="flex items-end gap-2">
-        <Field label="Group name" className="flex-1">
-          <TextInput value={group.name} onChange={(v) => edit((d) => (d.site.floors[fi].groups[gi].name = v))} />
-        </Field>
-        <Button variant="danger" onClick={() => edit((d) => d.site.floors[fi].groups.splice(gi, 1))}>
-          Remove group
-        </Button>
-      </div>
-
-      {group.equipment.map((equipment, ei) => (
-        <EquipmentCard key={ei} equipment={equipment} edit={edit} fi={fi} gi={gi} ei={ei} />
+      {floor.assets.map((asset, ei) => (
+        <AssetCard key={ei} asset={asset} edit={edit} fi={fi} ei={ei} />
       ))}
 
       <select
-        aria-label="Add equipment from a template"
+        aria-label="Add asset from a template"
         value=""
         onChange={(e) => {
-          const template = EQUIPMENT_TEMPLATES[Number(e.target.value)]
-          if (template) edit((d) => d.site.floors[fi].groups[gi].equipment.push(newEquipment(template, d)))
+          const template = ASSET_TEMPLATES[Number(e.target.value)]
+          if (template) edit((d) => d.site.floors[fi].assets.push(newAsset(template, d)))
         }}
         className={`${inputClass} w-auto`}
       >
-        <option value="">+ Add equipment from template…</option>
-        {EQUIPMENT_TEMPLATES.map((template, i) => (
+        <option value="">+ Add asset from template…</option>
+        {ASSET_TEMPLATES.map((template, i) => (
           <option key={template.label} value={i}>
             {template.label}
           </option>
         ))}
       </select>
-    </div>
+    </section>
   )
 }
 
-function EquipmentCard({ equipment, edit, fi, gi, ei }: { equipment: EquipmentConfig; edit: Edit; fi: number; gi: number; ei: number }) {
-  const set = (change: (e: EquipmentConfig) => void) => edit((d) => change(d.site.floors[fi].groups[gi].equipment[ei]))
+function AssetCard({ asset, edit, fi, ei }: { asset: AssetConfig; edit: Edit; fi: number; ei: number }) {
+  const set = (change: (e: AssetConfig) => void) => edit((d) => change(d.site.floors[fi].assets[ei]))
 
   return (
     <div className="space-y-3 rounded-lg border border-border bg-surface-raised p-3">
       <div className="grid gap-2 sm:grid-cols-4">
         <Field label="Name" className="sm:col-span-2">
-          <TextInput value={equipment.name} onChange={(v) => set((e) => (e.name = v))} />
+          <TextInput value={asset.name} onChange={(v) => set((e) => (e.name = v))} />
         </Field>
         <Field label="Type">
-          <select value={equipment.type} onChange={(ev) => set((e) => (e.type = ev.target.value as typeof e.type))} className={inputClass}>
-            {EQUIPMENT_TYPES.map((t) => (
+          <select value={asset.type} onChange={(ev) => set((e) => (e.type = ev.target.value as typeof e.type))} className={inputClass}>
+            {ASSET_TYPES.map((t) => (
               <option key={t}>{t}</option>
             ))}
           </select>
         </Field>
         <Field label="Shape">
-          <select value={equipment.shape} onChange={(ev) => set((e) => (e.shape = ev.target.value as typeof e.shape))} className={inputClass}>
-            {EQUIPMENT_SHAPES.map((s) => (
+          <select value={asset.shape} onChange={(ev) => set((e) => (e.shape = ev.target.value as typeof e.shape))} className={inputClass}>
+            {ASSET_SHAPES.map((s) => (
               <option key={s}>{s}</option>
             ))}
           </select>
         </Field>
         <Field label="Manufacturer">
-          <TextInput value={equipment.manufacturer} onChange={(v) => set((e) => (e.manufacturer = v))} />
+          <TextInput value={asset.manufacturer} onChange={(v) => set((e) => (e.manufacturer = v))} />
         </Field>
         <Field label="Model">
-          <TextInput value={equipment.model} onChange={(v) => set((e) => (e.model = v))} />
+          <TextInput value={asset.model} onChange={(v) => set((e) => (e.model = v))} />
         </Field>
         <Field label="Position x (m)">
-          <NumberInput value={equipment.position.x} onChange={(v) => set((e) => (e.position.x = v ?? 0))} />
+          <NumberInput value={asset.position.x} onChange={(v) => set((e) => (e.position.x = v ?? 0))} />
         </Field>
         <Field label="Position z (m)">
-          <NumberInput value={equipment.position.z} onChange={(v) => set((e) => (e.position.z = v ?? 0))} />
+          <NumberInput value={asset.position.z} onChange={(v) => set((e) => (e.position.z = v ?? 0))} />
         </Field>
         <Field label="Size x">
-          <NumberInput value={equipment.size.x} onChange={(v) => set((e) => (e.size.x = v ?? 0))} />
+          <NumberInput value={asset.size.x} onChange={(v) => set((e) => (e.size.x = v ?? 0))} />
         </Field>
         <Field label="Size y">
-          <NumberInput value={equipment.size.y} onChange={(v) => set((e) => (e.size.y = v ?? 0))} />
+          <NumberInput value={asset.size.y} onChange={(v) => set((e) => (e.size.y = v ?? 0))} />
         </Field>
         <Field label="Size z">
-          <NumberInput value={equipment.size.z} onChange={(v) => set((e) => (e.size.z = v ?? 0))} />
+          <NumberInput value={asset.size.z} onChange={(v) => set((e) => (e.size.z = v ?? 0))} />
         </Field>
         <div className="flex items-end justify-end">
-          <Button variant="danger" onClick={() => edit((d) => d.site.floors[fi].groups[gi].equipment.splice(ei, 1))}>
-            Remove equipment
+          <Button variant="danger" onClick={() => edit((d) => d.site.floors[fi].assets.splice(ei, 1))}>
+            Remove asset
           </Button>
         </div>
       </div>
 
       <div className="space-y-2">
         <p className="text-xs font-semibold text-text-muted">Tags</p>
-        {equipment.tags.map((tag, ti) => (
+        {asset.tags.map((tag, ti) => (
           <TagRow key={ti} tag={tag} set={(change) => set((e) => change(e.tags[ti]))} remove={() => set((e) => e.tags.splice(ti, 1))} />
         ))}
         <Button
           onClick={() =>
             edit((d) => {
-              const target = d.site.floors[fi].groups[gi].equipment[ei]
+              const target = d.site.floors[fi].assets[ei]
               const name = 'New Tag'
               target.tags.push({
                 id: uniqueId(`${d.site.id}.${target.id}.${slug(name)}`, new Set(target.tags.map((t) => t.id))),

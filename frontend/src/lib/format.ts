@@ -22,4 +22,4 @@ export function formatRange(min: number, max: number) {
 
 const TYPE_LABEL: Record<string, string> = { 'heat-exchanger': 'Heat exchanger' }
 
-export const formatEquipmentType = (type: string) => TYPE_LABEL[type] ?? type.charAt(0).toUpperCase() + type.slice(1)
+export const formatAssetType = (type: string) => TYPE_LABEL[type] ?? type.charAt(0).toUpperCase() + type.slice(1)

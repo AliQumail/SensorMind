@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace SensorMind.Core.Plant;
 
-/// <summary>A problem found in a plant config, located by a JSONPath such as <c>$.site.floors[0].groups[1]</c>.</summary>
+/// <summary>A problem found in a plant config, located by a JSONPath such as <c>$.site.floors[0].assets[1]</c>.</summary>
 public sealed record ConfigError(string Path, string Message)
 {
     public override string ToString() => $"{Path}: {Message}";
@@ -94,8 +94,7 @@ public static partial class PlantConfigParser
 
         // id -> path of first use, one namespace per entity kind.
         private readonly Dictionary<string, string> _floorIds = new(StringComparer.Ordinal);
-        private readonly Dictionary<string, string> _groupIds = new(StringComparer.Ordinal);
-        private readonly Dictionary<string, string> _equipmentIds = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, string> _assetIds = new(StringComparer.Ordinal);
         private readonly Dictionary<string, string> _tagIds = new(StringComparer.Ordinal);
         private readonly Dictionary<int, string> _floorLevels = [];
 
@@ -162,37 +161,25 @@ public static partial class PlantConfigParser
                 }
             }
 
-            var groups = BuildList(doc.Groups, $"{path}.groups", (g, p) => BuildGroup(g, p, size), requireNonEmpty: false);
+            var assets = BuildList(doc.Assets, $"{path}.assets", (a, p) => BuildAsset(a, p, size), requireNonEmpty: false);
 
-            return id is null || name is null || size is null || groups is null
+            return id is null || name is null || size is null || assets is null
                 ? null
-                : new Floor(id, name, level, size, groups);
+                : new Floor(id, name, level, size, assets);
         }
 
-        private EquipmentGroup? BuildGroup(GroupDocument doc, string path, FloorSize? floorSize)
+        private Asset? BuildAsset(AssetDocument doc, string path, FloorSize? floorSize)
         {
             ReportUnknownProperties(doc, path);
-            var id = RequireId(doc.Id, path, _groupIds, "group");
-            var name = RequireText(doc.Name, $"{path}.name");
-            var equipment = BuildList(doc.Equipment, $"{path}.equipment", (e, p) => BuildEquipment(e, p, floorSize), requireNonEmpty: false);
-
-            return id is null || name is null || equipment is null
-                ? null
-                : new EquipmentGroup(id, name, equipment);
-        }
-
-        private Equipment? BuildEquipment(EquipmentDocument doc, string path, FloorSize? floorSize)
-        {
-            ReportUnknownProperties(doc, path);
-            var id = RequireId(doc.Id, path, _equipmentIds, "equipment");
+            var id = RequireId(doc.Id, path, _assetIds, "asset");
             var name = RequireText(doc.Name, $"{path}.name");
             var manufacturer = RequireText(doc.Manufacturer, $"{path}.manufacturer");
             var model = RequireText(doc.Model, $"{path}.model");
-            var type = RequireEnum<EquipmentType>(doc.Type, $"{path}.type");
+            var type = RequireEnum<AssetType>(doc.Type, $"{path}.type");
 
-            EquipmentShape? shape = doc.Shape is null
+            AssetShape? shape = doc.Shape is null
                 ? type is null ? null : DefaultShape(type.Value)
-                : RequireEnum<EquipmentShape>(doc.Shape, $"{path}.shape");
+                : RequireEnum<AssetShape>(doc.Shape, $"{path}.shape");
 
             var placement = BuildPlacement(doc, path, shape, floorSize);
             var tags = BuildList(doc.Tags, $"{path}.tags", BuildTag, requireNonEmpty: false);
@@ -203,10 +190,10 @@ public static partial class PlantConfigParser
                 return null;
             }
 
-            return new Equipment(id, name, type.Value, manufacturer, model, NullIfBlank(doc.Description), placement, tags);
+            return new Asset(id, name, type.Value, manufacturer, model, NullIfBlank(doc.Description), placement, tags);
         }
 
-        private Placement? BuildPlacement(EquipmentDocument doc, string path, EquipmentShape? shape, FloorSize? floorSize)
+        private Placement? BuildPlacement(AssetDocument doc, string path, AssetShape? shape, FloorSize? floorSize)
         {
             Vector3? position = null;
             if (doc.Position is null)
@@ -450,12 +437,12 @@ public static partial class PlantConfigParser
 
         private static string Format(double value) => value.ToString(CultureInfo.InvariantCulture);
 
-        private static EquipmentShape DefaultShape(EquipmentType type) => type switch
+        private static AssetShape DefaultShape(AssetType type) => type switch
         {
-            EquipmentType.Pump or EquipmentType.Motor or EquipmentType.HeatExchanger => EquipmentShape.HorizontalCylinder,
-            EquipmentType.Tank or EquipmentType.Fan => EquipmentShape.Cylinder,
-            EquipmentType.Valve => EquipmentShape.Sphere,
-            _ => EquipmentShape.Box,
+            AssetType.Pump or AssetType.Motor or AssetType.HeatExchanger => AssetShape.HorizontalCylinder,
+            AssetType.Tank or AssetType.Fan => AssetShape.Cylinder,
+            AssetType.Valve => AssetShape.Sphere,
+            _ => AssetShape.Box,
         };
     }
 

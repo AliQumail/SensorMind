@@ -1,12 +1,10 @@
-import { useMemo } from 'react'
-import { Grid, Line } from '@react-three/drei'
-import type { EquipmentGroup, Floor } from '../../api/types'
-import { groupBounds } from '../../lib/sceneGeometry'
-import { equipmentStatus } from '../../lib/status'
+import { Grid } from '@react-three/drei'
+import type { Floor } from '../../api/types'
+import { assetStatus } from '../../lib/status'
 import { usePlant } from '../../state/plantContext'
 import { useReadings } from '../../state/readingsStore'
 import { getThemeColors } from '../../theme/themeColors'
-import { EquipmentModel } from './EquipmentModel'
+import { AssetModel } from './AssetModel'
 
 interface Props {
   floor: Floor
@@ -21,7 +19,7 @@ export function FloorModel({ floor, hoveredId, onHover }: Props) {
   const { selection, select } = usePlant()
   const { width, depth } = floor.size
 
-  const selectEquipment = (id: string) => select({ kind: 'equipment', id })
+  const selectAsset = (id: string) => select({ kind: 'asset', id })
 
   return (
     <group position={[-width / 2, 0, -depth / 2]}>
@@ -42,57 +40,17 @@ export function FloorModel({ floor, hoveredId, onHover }: Props) {
         fadeDistance={0}
       />
 
-      {floor.groups.map((group) => (
-        <GroupZone key={group.id} group={group} floor={floor} selected={selection?.kind === 'group' && selection.id === group.id} />
+      {floor.assets.map((asset) => (
+        <AssetModel
+          key={asset.id}
+          asset={asset}
+          status={assetStatus(asset, readings)}
+          selected={selection?.kind === 'asset' && selection.id === asset.id}
+          hovered={hoveredId === asset.id}
+          onSelect={selectAsset}
+          onHover={onHover}
+        />
       ))}
-
-      {floor.groups.flatMap((group) =>
-        group.equipment.map((equipment) => (
-          <EquipmentModel
-            key={equipment.id}
-            equipment={equipment}
-            status={equipmentStatus(equipment, readings)}
-            selected={selection?.kind === 'equipment' && selection.id === equipment.id}
-            highlighted={selection?.kind === 'group' && selection.id === group.id}
-            hovered={hoveredId === equipment.id}
-            onSelect={selectEquipment}
-            onHover={onHover}
-          />
-        )),
-      )}
-    </group>
-  )
-}
-
-/** A soft rectangle around a group's equipment, so groups read as areas of the plant. Its label lives in the overlay. */
-function GroupZone({ group, floor, selected }: { group: EquipmentGroup; floor: Floor; selected: boolean }) {
-  const colors = getThemeColors()
-  const bounds = useMemo(() => groupBounds(group, floor), [group, floor])
-  if (!bounds) return null
-
-  const { minX, maxX, minZ, maxZ } = bounds
-  const outline: [number, number, number][] = [
-    [minX, 0.01, minZ],
-    [maxX, 0.01, minZ],
-    [maxX, 0.01, maxZ],
-    [minX, 0.01, maxZ],
-    [minX, 0.01, minZ],
-  ]
-
-  return (
-    <group>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[(minX + maxX) / 2, 0.006, (minZ + maxZ) / 2]}>
-        <planeGeometry args={[maxX - minX, maxZ - minZ]} />
-        <meshStandardMaterial color={selected ? colors.accent : colors.zone} transparent opacity={selected ? 0.18 : 0.7} />
-      </mesh>
-      <Line
-        points={outline}
-        color={selected ? colors.accent : colors.borderStrong}
-        lineWidth={selected ? 2 : 1}
-        dashed={!selected}
-        dashSize={0.4}
-        gapSize={0.25}
-      />
     </group>
   )
 }

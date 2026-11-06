@@ -42,7 +42,13 @@ export const setUnauthorizedHandler = (handler: () => void) => {
   onUnauthorized = handler
 }
 
-async function request(method: string, path: string, body?: string, signal?: AbortSignal): Promise<Response> {
+async function request(
+  method: string,
+  path: string,
+  body?: string,
+  signal?: AbortSignal,
+  extraHeaders?: Record<string, string>,
+): Promise<Response> {
   const token = getToken()
   const response = await fetch(apiUrl(path), {
     method,
@@ -52,6 +58,7 @@ async function request(method: string, path: string, body?: string, signal?: Abo
       Accept: 'application/json',
       ...(body !== undefined && { 'Content-Type': 'application/json' }),
       ...(token && { Authorization: `Bearer ${token}` }),
+      ...extraHeaders,
     },
   })
   if (response.status === 401 && token) onUnauthorized()
@@ -127,3 +134,66 @@ export function fetchTagHistory(
 
 /** EventSource cannot send headers, so the token travels as a query parameter. */
 export const readingsStreamUrl = () => apiUrl(`/api/readings/stream?access_token=${encodeURIComponent(getToken() ?? '')}`)
+
+export interface ChatChartData {
+  tagId: string
+  name: string
+  unit: string
+  nominalMin: number
+  nominalMax: number
+  points: { t: number; v: number }[]
+}
+
+export interface ChatCitation {
+  source: string
+  page: number
+}
+
+export interface ChatStatus {
+  configured: boolean
+  limit: number
+  remaining: number
+}
+
+export const fetchChatStatus = () => json<ChatStatus>('GET', '/api/chat/status')
+
+export interface ChatHandlers {
+  onToken: (text: string) => void
+  onCitations: (citations: ChatCitation[]) => void
+  onChart: (chart: ChatChartData) => void
+  /** Free questions left today; null when the user's own key is used. */
+  onDone: (remaining: number | null) => void
+}
+
+/** POSTs a question and reads the Server-Sent Events reply (fetch, because EventSource cannot POST). */
+export async function askChat(
+  body: { question: string; assetId?: string; history: { role: string; content: string }[] },
+  userKey: string | null,
+  handlers: ChatHandlers,
+  signal: AbortSignal,
+) {
+  const response = await request('POST', '/api/chat', JSON.stringify(body), signal, userKey ? { 'X-OpenRouter-Key': userKey } : undefined)
+  if (!response.ok || !response.body) {
+    const message = ((await response.json().catch(() => null)) as { message?: string } | null)?.message
+    throw new ApiError(response.status, message ?? `Chat failed with ${response.status}`)
+  }
+
+  const reader = response.body.pipeThrough(new TextDecoderStream()).getReader()
+  let buffer = ''
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) return
+    buffer += value
+    const events = buffer.split('\n\n')
+    buffer = events.pop() ?? ''
+    for (const raw of events) {
+      const name = /^event: (.*)$/m.exec(raw)?.[1]
+      const data = JSON.parse(/^data: (.*)$/m.exec(raw)?.[1] ?? 'null')
+      if (name === 'token') handlers.onToken(data.text)
+      else if (name === 'citations') handlers.onCitations(data)
+      else if (name === 'chart') handlers.onChart(data)
+      else if (name === 'done') handlers.onDone(data.remaining)
+      else if (name === 'error') throw new Error(data.message)
+    }
+  }
+}

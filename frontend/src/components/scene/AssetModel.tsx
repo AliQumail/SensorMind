@@ -2,15 +2,13 @@ import { useMemo, useRef } from 'react'
 import { useFrame, type ThreeEvent } from '@react-three/fiber'
 import { Edges, useCursor } from '@react-three/drei'
 import { Color, type MeshStandardMaterial } from 'three'
-import type { Equipment, TagStatus } from '../../api/types'
+import type { Asset, TagStatus } from '../../api/types'
 import { getThemeColors, type ThemeColors } from '../../theme/themeColors'
 
 interface Props {
-  equipment: Equipment
+  asset: Asset
   status: TagStatus | undefined
   selected: boolean
-  /** Part of a selected group: marked more subtly than a direct selection. */
-  highlighted: boolean
   hovered: boolean
   onSelect: (id: string) => void
   onHover: (id: string | null) => void
@@ -19,13 +17,13 @@ interface Props {
 const WARNING_INTENSITY = 0.35
 const ALARM_INTENSITY = [0.2, 0.7] as const
 
-export function EquipmentModel({ equipment, status, selected, highlighted, hovered, onSelect, onHover }: Props) {
+export function AssetModel({ asset, status, selected, hovered, onSelect, onHover }: Props) {
   const colors = getThemeColors()
   const material = useRef<MeshStandardMaterial>(null)
   useCursor(hovered)
 
-  const { position, size, rotationDeg, shape } = equipment.placement
-  const baseColor = useMemo(() => new Color(bodyColor(equipment.type, colors)), [equipment.type, colors])
+  const { position, size, rotationDeg, shape } = asset.placement
+  const baseColor = useMemo(() => new Color(bodyColor(asset.type, colors)), [asset.type, colors])
   const emissive = useMemo(
     () => new Color(status === 'alarm' ? colors.alarm : status === 'warning' ? colors.warning : '#000000'),
     [status, colors],
@@ -44,7 +42,7 @@ export function EquipmentModel({ equipment, status, selected, highlighted, hover
 
   const handleClick = (event: ThreeEvent<MouseEvent>) => {
     event.stopPropagation()
-    onSelect(equipment.id)
+    onSelect(asset.id)
   }
 
   const isHorizontal = shape === 'horizontal-cylinder'
@@ -68,26 +66,26 @@ export function EquipmentModel({ equipment, status, selected, highlighted, hover
         onClick={handleClick}
         onPointerOver={(e) => {
           e.stopPropagation()
-          onHover(equipment.id)
+          onHover(asset.id)
         }}
         onPointerOut={() => onHover(null)}
       >
         <Geometry shape={shape} size={size} bodyHeight={bodyHeight} />
         <meshStandardMaterial ref={material} color={baseColor} emissive={emissive} roughness={0.65} metalness={0.15} />
-        {(selected || highlighted || hovered) && (
+        {(selected || hovered) && (
           <Edges
             threshold={20}
             lineWidth={selected ? 2.5 : 1.5}
-            color={selected || highlighted ? colors.accent : colors.borderStrong}
+            color={selected ? colors.accent : colors.borderStrong}
           />
         )}
       </mesh>
 
-      {(selected || highlighted) && (
+      {selected && (
         // Footprint pad: reads as "this one" from any camera angle, even when edges are occluded.
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.012, 0]}>
           <planeGeometry args={[size.x + 0.6, size.z + 0.6]} />
-          <meshBasicMaterial color={colors.accent} transparent opacity={selected ? 0.35 : 0.2} depthWrite={false} />
+          <meshBasicMaterial color={colors.accent} transparent opacity={0.35} depthWrite={false} />
         </mesh>
       )}
     </group>
@@ -99,8 +97,8 @@ function Geometry({
   size,
   bodyHeight,
 }: {
-  shape: Equipment['placement']['shape']
-  size: Equipment['placement']['size']
+  shape: Asset['placement']['shape']
+  size: Asset['placement']['size']
   bodyHeight: number
 }) {
   switch (shape) {
@@ -118,7 +116,7 @@ function Geometry({
   }
 }
 
-function bodyColor(type: Equipment['type'], colors: ThemeColors) {
+function bodyColor(type: Asset['type'], colors: ThemeColors) {
   switch (type) {
     case 'pump':
       return colors.pump

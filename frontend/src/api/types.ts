@@ -1,6 +1,6 @@
 // Mirrors the .NET API contracts (camelCase JSON, kebab-case enums, epoch-ms timestamps).
 
-export type EquipmentType =
+export type AssetType =
   | 'pump'
   | 'compressor'
   | 'motor'
@@ -10,7 +10,7 @@ export type EquipmentType =
   | 'heat-exchanger'
   | 'other'
 
-export type EquipmentShape = 'box' | 'cylinder' | 'horizontal-cylinder' | 'sphere'
+export type AssetShape = 'box' | 'cylinder' | 'horizontal-cylinder' | 'sphere'
 
 export type TagStatus = 'normal' | 'warning' | 'alarm'
 
@@ -30,10 +30,10 @@ export interface Tag {
   alarmHigh?: number
 }
 
-export interface Equipment {
+export interface Asset {
   id: string
   name: string
-  type: EquipmentType
+  type: AssetType
   manufacturer: string
   model: string
   description?: string
@@ -41,15 +41,9 @@ export interface Equipment {
     position: Vector3
     size: Vector3
     rotationDeg: number
-    shape: EquipmentShape
+    shape: AssetShape
   }
   tags: Tag[]
-}
-
-export interface EquipmentGroup {
-  id: string
-  name: string
-  equipment: Equipment[]
 }
 
 export interface Floor {
@@ -57,7 +51,7 @@ export interface Floor {
   name: string
   level: number
   size: { width: number; depth: number }
-  groups: EquipmentGroup[]
+  assets: Asset[]
 }
 
 export interface Site {

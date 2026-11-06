@@ -4,6 +4,7 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Npgsql" />
     <PackageReference Include="Qdrant.Client" />
+    <PackageReference Include="PdfPig" />
   </ItemGroup>
 
   <ItemGroup>

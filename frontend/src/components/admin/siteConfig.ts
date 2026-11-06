@@ -1,4 +1,4 @@
-import type { EquipmentShape, EquipmentType } from '../../api/types'
+import type { AssetShape, AssetType } from '../../api/types'
 
 // The plant config JSON as the API stores it (the document format, not the API's response model).
 
@@ -12,23 +12,17 @@ export interface TagConfig {
   alarmHigh?: number
 }
 
-export interface EquipmentConfig {
+export interface AssetConfig {
   id: string
   name: string
-  type: EquipmentType
+  type: AssetType
   manufacturer: string
   model: string
   description?: string
   position: { x: number; z: number }
   size: { x: number; y: number; z: number }
-  shape: EquipmentShape
+  shape: AssetShape
   tags: TagConfig[]
-}
-
-export interface GroupConfig {
-  id: string
-  name: string
-  equipment: EquipmentConfig[]
 }
 
 export interface FloorConfig {
@@ -36,7 +30,7 @@ export interface FloorConfig {
   name: string
   level: number
   size: { width: number; depth: number }
-  groups: GroupConfig[]
+  assets: AssetConfig[]
 }
 
 export interface SiteConfig {
@@ -59,12 +53,8 @@ function isSiteShape(site: SiteConfig['site'] | null | undefined): boolean {
     site.floors.every(
       (f) =>
         f?.size &&
-        Array.isArray(f.groups) &&
-        f.groups.every(
-          (g) =>
-            Array.isArray(g?.equipment) &&
-            g.equipment.every((e) => e?.position && e.size && Array.isArray(e.tags) && e.tags.every(Boolean)),
-        ),
+        Array.isArray(f.assets) &&
+        f.assets.every((e) => e?.position && e.size && Array.isArray(e.tags) && e.tags.every(Boolean)),
     )
   )
 }
@@ -74,8 +64,8 @@ export function isTenantConfig(value: unknown): value is TenantConfig {
   return typeof config?.tenant === 'string' && Array.isArray(config.sites) && config.sites.every(isSiteShape)
 }
 
-export const EQUIPMENT_TYPES: EquipmentType[] = ['pump', 'compressor', 'motor', 'tank', 'fan', 'valve', 'heat-exchanger', 'other']
-export const EQUIPMENT_SHAPES: EquipmentShape[] = ['box', 'cylinder', 'horizontal-cylinder', 'sphere']
+export const ASSET_TYPES: AssetType[] = ['pump', 'compressor', 'motor', 'tank', 'fan', 'valve', 'heat-exchanger', 'other']
+export const ASSET_SHAPES: AssetShape[] = ['box', 'cylinder', 'horizontal-cylinder', 'sphere']
 
 export const slug = (text: string) =>
   text
@@ -91,8 +81,8 @@ export function uniqueId(base: string, taken: Set<string>): string {
   return id
 }
 
-export const allEquipmentIds = (config: SiteConfig) =>
-  new Set(config.site.floors.flatMap((f) => f.groups.flatMap((g) => g.equipment.map((e) => e.id))))
+export const allAssetIds = (config: SiteConfig) =>
+  new Set(config.site.floors.flatMap((f) => f.assets.map((e) => e.id)))
 
 export function newSite(name: string): SiteConfig {
   return {
@@ -107,7 +97,7 @@ export function newSite(name: string): SiteConfig {
           name: 'Ground Floor',
           level: 0,
           size: { width: 30, depth: 18 },
-          groups: [{ id: 'grp-main', name: 'Main', equipment: [] }],
+          assets: [],
         },
       ],
     },
@@ -116,15 +106,15 @@ export function newSite(name: string): SiteConfig {
 
 type TagTemplate = Omit<TagConfig, 'id'>
 
-export interface EquipmentTemplate {
+export interface AssetTemplate {
   label: string
-  type: EquipmentType
-  shape: EquipmentShape
+  type: AssetType
+  shape: AssetShape
   size: { x: number; y: number; z: number }
   tags: TagTemplate[]
 }
 
-export const EQUIPMENT_TEMPLATES: EquipmentTemplate[] = [
+export const ASSET_TEMPLATES: AssetTemplate[] = [
   {
     label: 'Pump',
     type: 'pump',
@@ -168,11 +158,11 @@ export const EQUIPMENT_TEMPLATES: EquipmentTemplate[] = [
       { name: 'Temperature', unit: '°C', nominalMin: 15, nominalMax: 30, alarmHigh: 45 },
     ],
   },
-  { label: 'Blank equipment', type: 'other', shape: 'box', size: { x: 1, y: 1, z: 1 }, tags: [] },
+  { label: 'Blank asset', type: 'other', shape: 'box', size: { x: 1, y: 1, z: 1 }, tags: [] },
 ]
 
-export function newEquipment(template: EquipmentTemplate, config: SiteConfig): EquipmentConfig {
-  const id = uniqueId(template.label, allEquipmentIds(config))
+export function newAsset(template: AssetTemplate, config: SiteConfig): AssetConfig {
+  const id = uniqueId(template.label, allAssetIds(config))
   return {
     id,
     name: template.label,

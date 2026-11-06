@@ -34,12 +34,11 @@ internal static class PlantEndpoints
 
 internal sealed record PlantValidationResponse(bool Valid, IReadOnlyList<ConfigError> Errors, PlantSummary? Summary);
 
-internal sealed record PlantSummary(int Floors, int Groups, int Equipment, int Tags)
+internal sealed record PlantSummary(int Floors, int Assets, int Tags)
 {
     public static PlantSummary From(PlantModel plant)
     {
-        var groups = plant.Site.Floors.SelectMany(f => f.Groups).ToList();
-        var equipment = groups.SelectMany(g => g.Equipment).ToList();
-        return new PlantSummary(plant.Site.Floors.Count, groups.Count, equipment.Count, equipment.Sum(e => e.Tags.Count));
+        var assets = plant.Site.Floors.SelectMany(f => f.Assets).ToList();
+        return new PlantSummary(plant.Site.Floors.Count, assets.Count, assets.Sum(e => e.Tags.Count));
     }
 }

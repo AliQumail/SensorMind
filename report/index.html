@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Report</title>
+<link rel="stylesheet" href="report.css">
+</head>
+<body>
+
+<p class="journal">INTERNATIONAL JOURNAL OF SCIENCE, TECHNOLOGY, EDUCATION AND MANAGEMENT RESEARCH (IJSTER), Volume, Issue, Month and Year</p>
+
+<h1 class="title">SensorMind: A Three-Dimensional Plant Monitor with Retrieval-Augmented Question Answering</h1>
+
+<p class="author">Ali QUMAIL<sup>1</sup></p>
+<p class="affil"><sup>1</sup>Organisation, Address, City, Postcode, Country<br>Tel: [Tel]; Email: [Email]</p>
+
+<div class="abstract">
+<p><b>Abstract:</b> SensorMind is a web application that presents the assets of an industrial plant as a navigable three-dimensional model and attaches live sensor values, alarm states and an assistant to it. The plant is described by a validated JSON document organised as site, floor, asset and tag, and is stored per tenant in PostgreSQL. A seeded stochastic simulator supplies the sensor data over Server-Sent Events. A retrieval-augmented assistant answers questions from equipment manuals held in a vector store and from current readings, cites the manual pages it uses, and can draw trend graphs. This paper describes the design and implementation. The system was exercised on one sample plant. The assistant was tested only against a local stand-in for the language-model service, and no accuracy or performance measurements were taken.</p>
+<p><b>Keywords:</b> industrial monitoring; sensor data; retrieval-augmented generation; vector search; multi-tenant web application</p>
+</div>
+
+<h2>1. Introduction</h2>
+<p class="first">An operator who wants to know what is wrong with a machine usually has to consult several tools. Sensor values sit in a historian or a supervisory display, drawings in a document store, and manuals in PDF files that few people open under time pressure. SensorMind brings these into one browser view. Assets are drawn in a three-dimensional model arranged by floor. Selecting an asset shows its tags with current value, status and recent trend. A chat panel answers questions from the manuals and the live readings.</p>
+<p>The contributions of this work are the following.</p>
+<ul>
+<li>A plant description format (site, floor, asset, tag) with single-pass validation that reports every error together with its path.</li>
+<li>A deterministic, seedable sensor simulator with drifts, spikes and alarm excursions, placed behind a storage interface that a historian could replace.</li>
+<li>A question-answering pipeline that grounds answers in manual excerpts and current readings, cites the pages used, and returns validated trend data for charts.</li>
+<li>A multi-tenant deployment with database-backed accounts and a per-address limit on free chat use.</li>
+</ul>
+
+<h2>2. System Architecture</h2>
+<p class="first">The system has three tiers (Figure 1). A single-page application written in React and TypeScript renders the interface. An ASP.NET Core 8 service holds the domain logic, persistence and HTTP endpoints; it is split into three projects, Core, Infrastructure and Api. Three external services are used: PostgreSQL for tenants, sites and accounts, Qdrant for manual embeddings, and OpenRouter for embeddings and chat completions.</p>
+
+
+<p>The Core project has no input or output dependencies. It contains the plant model, the configuration parser, the status rules and the simulator. Infrastructure implements storage and the clients of external services, and Api maps endpoints. Live readings reach the browser as Server-Sent Events (SSE) [4], because the traffic runs in one direction and the browser reconnects without extra code. History is fetched over REST.</p>
+
+
+<figure class="wide f1">
+<svg viewBox="0 0 760 236" xmlns="http://www.w3.org/2000/svg" font-family="Times New Roman, Times, serif" font-size="11.5">
+<defs><marker id="a" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L8 4L0 8z" fill="#222"/></marker></defs>
+<g stroke="#222" stroke-width="1" fill="none">
+  <rect x="4" y="4" width="214" height="228" rx="3" fill="#f4f1ec"/>
+  <rect x="276" y="4" width="268" height="228" rx="3" fill="#f4f1ec"/>
+  <rect x="602" y="4" width="154" height="60" rx="3" fill="#fff"/>
+  <rect x="602" y="88" width="154" height="60" rx="3" fill="#fff"/>
+  <rect x="602" y="172" width="154" height="60" rx="3" fill="#fff"/>
+  <g fill="#fff">
+    <rect x="18" y="34" width="186" height="30" rx="2"/><rect x="18" y="72" width="186" height="30" rx="2"/><rect x="18" y="110" width="186" height="30" rx="2"/>
+    <rect x="18" y="148" width="186" height="30" rx="2"/><rect x="18" y="186" width="186" height="30" rx="2"/>
+    <rect x="290" y="30" width="240" height="52" rx="2"/><rect x="290" y="90" width="240" height="68" rx="2"/><rect x="290" y="166" width="240" height="52" rx="2"/>
+  </g>
+  <path d="M218 88H276" marker-start="url(#a)" marker-end="url(#a)"/>
+  <path d="M218 164H276" marker-start="url(#a)" marker-end="url(#a)" stroke-dasharray="5 3"/>
+  <path d="M544 34H602" marker-end="url(#a)" marker-start="url(#a)"/>
+  <path d="M544 118H602" marker-end="url(#a)" marker-start="url(#a)"/>
+  <path d="M544 202H602" marker-end="url(#a)" marker-start="url(#a)"/>
+</g>
+<g fill="#111" text-anchor="middle">
+  <text x="111" y="22" font-weight="bold">Browser (React, TypeScript)</text>
+  <text x="111" y="53">Asset tree</text><text x="111" y="91">3D plant view (Three.js)</text><text x="111" y="129">Sensor panel and sparklines</text>
+  <text x="111" y="167">Chat panel (Markdown, charts)</text><text x="111" y="205">Notification bell</text>
+  <text x="410" y="20" font-weight="bold">ASP.NET Core 8 service</text>
+  <text x="410" y="46" font-weight="bold">Api</text><text x="410" y="60">endpoints: auth, sites, plant,</text><text x="410" y="73">readings, chat; JWT; rate limit</text>
+  <text x="410" y="105" font-weight="bold">Infrastructure</text><text x="410" y="119">repositories, sensor store,</text><text x="410" y="132">simulation service, ingestion service,</text><text x="410" y="145">vector store, OpenRouter client</text>
+  <text x="410" y="182" font-weight="bold">Core</text><text x="410" y="196">plant model, parser, status rules,</text><text x="410" y="209">sensor simulator (no I/O)</text>
+  <text x="679" y="30" font-weight="bold">PostgreSQL</text><text x="679" y="46">tenants, sites, users</text>
+  <text x="679" y="114" font-weight="bold">Qdrant</text><text x="679" y="130">manual chunks, vectors</text>
+  <text x="679" y="198" font-weight="bold">OpenRouter</text><text x="679" y="214">embeddings, chat completions</text>
+  <text x="247" y="82" font-size="10">REST</text><text x="247" y="158" font-size="10">SSE</text>
+  <text x="573" y="28" font-size="10">SQL</text><text x="573" y="112" font-size="10">gRPC</text><text x="573" y="196" font-size="10">HTTPS</text>
+</g>
+</svg>
+<figcaption><b>Figure 1.</b> System architecture. Solid arrows are request and response traffic; the dashed arrow is the server-sent event stream used for live readings and chat answers.</figcaption>
+</figure>
+
+<h2>3. Methods</h2>
+<h3>3.1 &ndash; Plant Configuration Model</h3>
+<p class="first">The plant is described as a tree with four levels (Figure 2). A site is the plant as a whole. A floor is one level of the building and has its own three-dimensional view. An asset is a machine that is monitored, such as a pump or a compressor; it is the unit that a user selects and asks the assistant about. A tag is one sensor signal of an asset, for example a bearing temperature, with its unit and its nominal and alarm limits. Assets sit directly under a floor, with no grouping between the two.</p>
+
+<figure class="wide f2">
+<svg viewBox="0 0 760 104" xmlns="http://www.w3.org/2000/svg" font-family="Times New Roman, Times, serif" font-size="11.5">
+<defs><marker id="c" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4L0 8z" fill="#222"/></marker></defs>
+<g stroke="#222" stroke-width="1" fill="#fff">
+  <rect x="4" y="24" width="160" height="62" rx="3" fill="#f4f1ec"/><rect x="204" y="24" width="160" height="62" rx="3"/>
+  <rect x="404" y="24" width="160" height="62" rx="3"/><rect x="604" y="24" width="152" height="62" rx="3"/>
+</g>
+<g stroke="#222" stroke-width="1" fill="none">
+  <path d="M164 55H204" marker-end="url(#c)"/><path d="M364 55H404" marker-end="url(#c)"/><path d="M564 55H604" marker-end="url(#c)"/>
+</g>
+<g fill="#111" text-anchor="middle">
+  <text x="84" y="16" font-weight="bold">Site</text><text x="284" y="16" font-weight="bold">Floor</text><text x="484" y="16" font-weight="bold">Asset</text><text x="680" y="16" font-weight="bold">Tag</text>
+  <text x="84" y="50">Harbor Works</text><text x="84" y="66" font-size="10">the plant as a whole</text>
+  <text x="284" y="46">Ground Floor</text><text x="284" y="60">Utilities (level 0)</text><text x="284" y="76" font-size="10">own 3D view</text>
+  <text x="484" y="46">Cooling Water</text><text x="484" y="60">Pump P-101</text><text x="484" y="76" font-size="10">selected and asked about</text>
+  <text x="680" y="46">Bearing Temperature</text><text x="680" y="60">&#176;C, nominal 42 to 62,</text><text x="680" y="74" font-size="10">alarm above 80</text>
+  <text x="184" y="48" font-size="10">1..n</text><text x="384" y="48" font-size="10">1..n</text><text x="584" y="48" font-size="10">1..n</text>
+</g>
+</svg>
+<figcaption><b>Figure 2.</b> Levels of the plant model, with the sample plant as the example. Each level holds one or more of the next.</figcaption>
+</figure>
+
+<p>An asset has a type, manufacturer, model and a placement (position, size, rotation and shape hint) used by the three-dimensional view. A tag has a unit, a nominal band and optional lower and upper alarm limits. A tag is in alarm when its value reaches an alarm limit, in warning when it lies outside the nominal band, and normal otherwise. The interface rolls statuses up, so an asset or a floor shows the worst status below it.</p>
+<p>The parser reads the JSON into nullable document classes and then builds immutable domain records. A missing field therefore becomes an error with a JSON path instead of an exception, and all errors are collected in one pass. Unknown properties are errors. Identifiers are lowercase kebab-case and unique, and the rotated footprint of each asset must lie inside its floor. The sample file describes one site with two floors, ten assets and 36 tags.</p>
+
+<h3>3.2 &ndash; Sensor Simulation</h3>
+<p class="first">Each tag is simulated as an Ornstein&ndash;Uhlenbeck process [1], a mean-reverting random walk, around the centre of its nominal band. The time constant of the reversion is 90 s, and the noise is scaled so that the stationary standard deviation is 0.18 of the half-width of the band. Three kinds of Poisson-distributed event are added per tag: slow drifts (0.4 per hour), whose triangular offset peaks at 1.2 half-widths and can therefore leave the nominal band; single-sample spikes (0.6 per hour); and short excursions beyond an alarm limit (one in twelve per hour). A sample is produced every two seconds, and a fixed seed makes a run repeatable. These rates are defaults of the simulation profile, chosen so that events are visible in a demonstration; they were not fitted to plant data.</p>
+<p>Twenty-four hours of history are generated at start-up so that charts are populated at once. Readings are kept in a fixed-size ring buffer per tag behind an interface, <i>ISensorStore</i>, which a historian could implement. History requests are reduced to the requested number of points by averaging buckets of equal sample count.</p>
+
+<h3>3.3 &ndash; Retrieval-Augmented Generation</h3>
+<p class="first">The pipeline follows the retrieve-then-generate pattern [2] (Figure 3). Ingestion runs at start-up. Each PDF in the manuals folder is hashed with SHA-256, and a file whose hash is already stored in Qdrant is skipped. Otherwise the text is extracted page by page with PdfPig and split into chunks of about 450 words (roughly 600 tokens) with an overlap of 60 words. A chunk never crosses a page boundary, so each has one page number. Chunks are embedded in batches of 32, by default with <i>text-embedding-3-small</i> (1536 dimensions), and stored with cosine distance. The payload holds the text, source file, page and document hash, and, when the file name contains a manufacturer or model that occurs in the plant, those two fields. A scanned document without a text layer is skipped with a warning; no character recognition is attempted.</p>
+
+<figure class="wide">
+<svg viewBox="0 0 760 262" xmlns="http://www.w3.org/2000/svg" font-family="Times New Roman, Times, serif" font-size="11">
+<defs><marker id="b" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4L0 8z" fill="#222"/></marker></defs>
+<g fill="#111" font-weight="bold" font-size="11.5"><text x="4" y="14">Ingestion (at start-up)</text><text x="4" y="148">Query (per question)</text></g>
+<g stroke="#222" stroke-width="1" fill="#fff">
+  <rect x="4" y="24" width="110" height="52" rx="2"/><rect x="132" y="24" width="110" height="52" rx="2"/><rect x="260" y="24" width="110" height="52" rx="2"/>
+  <rect x="388" y="24" width="110" height="52" rx="2"/><rect x="516" y="24" width="110" height="52" rx="2"/><rect x="644" y="24" width="112" height="52" rx="2" fill="#f4f1ec"/>
+  <rect x="4" y="158" width="110" height="52" rx="2"/><rect x="132" y="158" width="110" height="52" rx="2"/><rect x="260" y="158" width="110" height="52" rx="2" fill="#f4f1ec"/>
+  <rect x="388" y="158" width="110" height="52" rx="2"/><rect x="516" y="158" width="110" height="52" rx="2"/><rect x="644" y="158" width="112" height="52" rx="2"/>
+  <rect x="388" y="232" width="110" height="26" rx="2" fill="#f4f1ec"/>
+</g>
+<g stroke="#222" stroke-width="1" fill="none">
+  <path d="M114 50H132" marker-end="url(#b)"/><path d="M242 50H260" marker-end="url(#b)"/><path d="M370 50H388" marker-end="url(#b)"/><path d="M498 50H516" marker-end="url(#b)"/><path d="M626 50H644" marker-end="url(#b)"/>
+  <path d="M114 184H132" marker-end="url(#b)"/><path d="M242 184H260" marker-end="url(#b)"/><path d="M370 184H388" marker-end="url(#b)"/><path d="M498 184H516" marker-end="url(#b)"/><path d="M626 184H644" marker-end="url(#b)"/>
+  <path d="M700 76V112H315V158" marker-end="url(#b)" stroke-dasharray="5 3"/>
+  <path d="M443 232V210" marker-end="url(#b)" stroke-dasharray="5 3"/>
+  <path d="M498 245H700V210" marker-end="url(#b)" stroke-dasharray="5 3"/>
+</g>
+<g fill="#111" text-anchor="middle">
+  <text x="59" y="46">PDF files in</text><text x="59" y="60">manuals folder</text>
+  <text x="187" y="46">SHA-256 hash;</text><text x="187" y="60">skip if stored</text>
+  <text x="315" y="46">Text per page</text><text x="315" y="60">(PdfPig)</text>
+  <text x="443" y="46">Chunks: ~450 words,</text><text x="443" y="60">60 overlap, one page</text>
+  <text x="571" y="46">Embeddings</text><text x="571" y="60">(OpenRouter)</text>
+  <text x="700" y="46" font-weight="bold">Qdrant</text><text x="700" y="60">cosine; text, file, page,</text><text x="700" y="71" font-size="9.5">hash, manufacturer, model</text>
+  <text x="59" y="180">Question and</text><text x="59" y="194">selected asset</text>
+  <text x="187" y="180">Question</text><text x="187" y="194">embedding</text>
+  <text x="315" y="178" font-weight="bold">Top-5 search</text><text x="315" y="192">manufacturer filter,</text><text x="315" y="204" font-size="10">widened if empty</text>
+  <text x="443" y="176">Prompt: rules, tags,</text><text x="443" y="190">readings and trend,</text><text x="443" y="204" font-size="10">excerpts [n], history</text>
+  <text x="571" y="180">Chat model</text><text x="571" y="194">(streamed)</text>
+  <text x="700" y="176">SSE events:</text><text x="700" y="190">token, citations,</text><text x="700" y="204">chart, done</text>
+  <text x="443" y="249">Sensor store</text>
+</g>
+</svg>
+<figcaption><b>Figure 3.</b> Data flow of the retrieval-augmented pipeline. Dashed arrows are lookups: the search reads Qdrant, the prompt and the chart events read the sensor store.</figcaption>
+</figure>
+
+<p>At query time the question is embedded and the five nearest chunks are retrieved. If an asset is selected, the search is restricted to its manufacturer; when that returns nothing, it is repeated without a filter. The prompt holds fixed rules, the identifier, name and unit of every tag, and the numbered excerpts. For the selected asset, for assets named in the question or, failing both, for assets in warning or alarm, it also lists each tag&rsquo;s current value, status, nominal band and a 15-minute trend summary (direction, minimum, maximum and mean). The rules require the model to answer only from this context, to cite excerpts by number, to say when only sensor data was used, and to state when the context is insufficient. The last six turns of the conversation are added.</p>
+<p>The answer is streamed as SSE events. When the stream ends, the service reads the cited numbers and sends the matching file and page as citations. If the text contains a fenced block of the form <i>{&ldquo;tagId&rdquo;: &hellip;, &ldquo;minutes&rdquo;: &hellip;}</i>, the service checks the tag identifier against the plant, reads the sensor store for the window (5 to 240 minutes, at most 120 points) and sends the series as a chart event. The interface hides the block and draws the graph. If the vector store or the embedding call fails, the answer is produced from sensor data alone.</p>
+
+<h3>3.4 &ndash; Multi-Tenancy and Authentication</h3>
+<p class="first">A tenant is stored as one document, <i>{tenant, sites[]}</i>, with its sites in a PostgreSQL table, and a save replaces the tenant and its sites in one transaction. Site and tag identifiers must be unique across tenants, because the sensor store is keyed by tag identifier. Accounts are rows of a users table that hold a salted hash from the ASP.NET Core password hasher. A successful login returns a JSON Web Token [3] valid for eight hours. The browser keeps it in local storage if the user asks to stay signed in, and in session storage otherwise. Endpoints require a valid token by default, and tenant management also requires the admin role. The only account created automatically is a guest account without that role. A browser <i>EventSource</i> cannot set headers, so the live stream accepts the token as a query parameter. Accounts are not bound to a tenant: any signed-in user can read every tenant.</p>
+
+<h2>4. Implementation</h2>
+<p class="first">The backend uses minimal APIs grouped by concern. The OpenRouter key and address, the model names, the Qdrant address and key, the manuals folder and the chat limit are configuration values, and none is stored in the repository. The chat endpoint accepts ten questions per client address and UTC day with the server key; the count is kept in memory and is lost at restart. A request that carries its own key in a header is exempt, and that key is used for that request only. With neither a server key nor a request key, the endpoint answers 503 with an explanatory message, which the interface displays.</p>
+<p>The frontend uses React 19, Vite, Three.js through react-three-fiber, Recharts, Tailwind CSS and react-markdown. Live readings are held in a store outside React and read with <i>useSyncExternalStore</i>, so a component re-renders only for the tags it shows. An asset is drawn as a primitive from its placement data and tinted by status.</p>
+<p>Notifications are derived on the client from the same stream. A tag raises one when it first reports warning or alarm, which covers assets already in that state at load, and again when it changes from one to the other. A return to normal raises none. At most 50 are kept, in memory, and selecting an item selects that asset in the tree.</p>
+
+<h2>5. Results and Interface</h2>
+<p class="first">This section shows the running application and lists the checks made; it reports no measurements. The screenshots come from throwaway instances on temporary ports. Figure 4 shows the main view with one asset selected, Figure 5(a) the sign-in page, Figure 5(b) the notification list, and Figure 5(c) the chat panel.</p>
+
+<figure class="wide main">
+<img src="figures/main.png" alt="Main view">
+<figcaption><b>Figure 4.</b> Main view: asset tree (left), three-dimensional floor view (centre), and the sensor panel with the chat panel (right). The tree lists floors and assets directly. The selected pump shows its tags with live values and 15-minute sparklines.</figcaption>
+</figure>
+
+<p>The checks in Table 1 were run by hand against the throwaway instances; the repository contains no automated test suite. Every chat check used a small local server that implements the OpenAI-compatible embedding and streaming endpoints and returns a fixed reply. Retrieval quality, answer quality, latency and cost with a real model were therefore not examined, and OpenRouter itself was never called. The only manual used was a synthetic two-page PDF written for the test.</p>
+
+<figure class="wide triple">
+<div class="row">
+<div class="cell" style="width:41%"><img src="figures/login.png" alt="Sign-in page"><span class="sub">(a)</span></div>
+<div class="cell" style="width:27%"><img src="figures/bell.png" alt="Notification list"><span class="sub">(b)</span></div>
+<div class="cell" style="width:27%"><img src="figures/chat.png" alt="Chat panel"><span class="sub">(c)</span></div>
+</div>
+<figcaption><b>Figure 5.</b> (a) Sign-in page. (b) Notification list, showing a warning raised by the simulator. (c) Chat panel with a streamed answer, a source chip and an inline trend graph. The answer in (c) came from a local stand-in for the model service, with a synthetic two-page manual, and shows interface behaviour only; the graph is real simulator data.</figcaption>
+</figure>
+
+
+<table>
+<caption><b>Table 1.</b> Checks performed and their outcome.</caption>
+<thead><tr><th>Check</th><th>Setup</th><th>Outcome</th></tr></thead>
+<tbody>
+<tr><td>Ingestion</td><td>Synthetic two-page PDF</td><td>Two chunks stored; a second start skipped the file by its hash</td></tr>
+<tr><td>Ingestion failures</td><td>No key; Qdrant stopped; empty folder</td><td>A warning was logged each time and the API started</td></tr>
+<tr><td>Chat stream</td><td>Stand-in model server</td><td>Token, citation, chart and completion events received; chart block hidden</td></tr>
+<tr><td>Rate limit and keys</td><td>Eleven requests from one address; no server key and no request key</td><td>Ten accepted, the eleventh refused with status 429; a request with its own key was then accepted; without any key, status 503 with an explanatory message</td></tr>
+<tr><td>Notifications</td><td>Running simulator, headless browser</td><td>A warning raised by the simulator appeared in the list with its floor and value</td></tr>
+<tr><td>Authentication</td><td>Guest, wrong password, unknown user, restart</td><td>Guest accepted; the others refused with 401; no duplicate guest row</td></tr>
+</tbody>
+</table>
+
+<h2>6. Limitations and Future Work</h2>
+<p class="first">All sensor data are simulated, and the sensor store is in memory, so history is lost at restart. The chat has not been evaluated for answer quality, and the real OpenRouter service has not been called. The manufacturer filter relies on file names, and a model filter was not used because most file names do not carry the full model. A document that fails part-way through ingestion is not retried, since its hash is already stored for the chunks that were written. The chart mechanism depends on the model following the fenced-block instruction; a block that fails validation is ignored.</p>
+<p>The rate limit uses the connection address. Behind a reverse proxy this is the proxy&rsquo;s address until forwarded headers are configured, and these were left out because trusting them would let clients forge the address. Accounts are not tenant-scoped, there is no password change or reset, and no administrator is created automatically, so tenant management needs an account added to the database by hand. Notifications exist only in the browser, are lost on reload and cannot be acknowledged.</p>
+<p>Future work includes connectors for real plant data, an evaluation of answers against real manuals with measured retrieval quality, tenant-scoped accounts, and persisted, acknowledgeable alarms.</p>
+
+<h2>7. Conclusion</h2>
+<p class="first">SensorMind couples a validated plant model, a simulated sensor stream and a retrieval-augmented assistant in one multi-tenant web application. Storage, the model client and the vector store sit behind small interfaces, and the application runs without a key, a vector store or manuals. As a prototype it is complete, but the assistant is untested against a real model and the data are simulated, so its usefulness on a real plant remains open.</p>
+
+<h2 class="refs">References</h2>
+<ol class="refs">
+<li>G. E. Uhlenbeck and L. S. Ornstein, &ldquo;On the theory of the Brownian motion,&rdquo; <i>Physical Review</i>, vol. 36, no. 5, pp. 823&ndash;841, 1930.</li>
+<li>P. Lewis <i>et al.</i>, &ldquo;Retrieval-augmented generation for knowledge-intensive NLP tasks,&rdquo; in <i>Advances in Neural Information Processing Systems</i>, vol. 33, 2020, pp. 9459&ndash;9474.</li>
+<li>M. Jones, J. Bradley and N. Sakimura, &ldquo;JSON Web Token (JWT),&rdquo; RFC 7519, IETF, 2015.</li>
+<li>WHATWG, &ldquo;HTML Living Standard: Server-sent events,&rdquo; https://html.spec.whatwg.org/multipage/server-sent-events.html.</li>
+</ol>
+
+</body>
+</html>

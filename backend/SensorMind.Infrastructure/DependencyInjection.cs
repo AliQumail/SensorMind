@@ -44,6 +44,15 @@ public static class DependencyInjection
         });
         services.AddSingleton<ManualVectorStore>();
 
+        services.Configure<OpenRouterOptions>(configuration.GetSection(OpenRouterOptions.SectionName));
+        services.Configure<ManualsOptions>(configuration.GetSection(ManualsOptions.SectionName));
+        services.AddHttpClient<OpenRouterClient>((sp, client) =>
+        {
+            client.BaseAddress = new Uri(sp.GetRequiredService<IOptions<OpenRouterOptions>>().Value.BaseUrl.TrimEnd('/') + "/");
+            client.Timeout = TimeSpan.FromMinutes(5);
+        });
+        services.AddHostedService<ManualIngestionService>();
+
         return services;
     }
 }

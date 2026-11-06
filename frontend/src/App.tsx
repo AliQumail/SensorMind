@@ -15,6 +15,7 @@ import { LoginPage } from './components/auth/LoginPage'
 import { ChatPanel } from './components/chat/ChatPanel'
 import { AppHeader, type HeaderNav } from './components/layout/AppHeader'
 import { Panel } from './components/layout/Panel'
+import { PlantLoader } from './components/layout/PlantLoader'
 import { PlantScene } from './components/scene/PlantScene'
 import { SensorPanel } from './components/sensors/SensorPanel'
 import { AssetTree } from './components/tree/AssetTree'
@@ -80,7 +81,7 @@ function Workspace({ user, onLogout }: { user: { username: string; role: string 
     onLogout,
   }
 
-  return (
+  const layout = (
     <div className="flex min-h-full flex-col lg:h-full">
       <AppHeader nav={nav} />
       {directoryVersion !== null && !siteId ? (
@@ -90,7 +91,7 @@ function Workspace({ user, onLogout }: { user: { username: string; role: string 
       ) : state.status !== 'ready' ? (
         <main className="grid flex-1 place-items-center p-6 text-center">
           {state.status === 'loading' ? (
-            <p className="text-text-muted">Loading plant…</p>
+            <PlantLoader />
           ) : (
             <div className="max-w-md space-y-2">
               <p className="font-semibold text-alarm-text">Could not load the plant configuration.</p>
@@ -99,7 +100,6 @@ function Workspace({ user, onLogout }: { user: { username: string; role: string 
           )}
         </main>
       ) : (
-        <PlantProvider key={`${state.index.plant.site.id}:${state.version}`} index={state.index}>
           <main
             className={`grid flex-1 grid-cols-1 gap-3 px-3 pb-3 lg:min-h-0 lg:grid-cols-[var(--tree-width)_minmax(0,1fr)_minmax(340px,400px)] ${
               treeOpen ? '[--tree-width:300px]' : '[--tree-width:52px]'
@@ -140,7 +140,6 @@ function Workspace({ user, onLogout }: { user: { username: string; role: string 
               </Panel>
             </div>
           </main>
-        </PlantProvider>
       )}
 
       {tenantModal && (
@@ -161,6 +160,14 @@ function Workspace({ user, onLogout }: { user: { username: string; role: string 
         />
       )}
     </div>
+  )
+
+  return state.status === 'ready' && !(directoryVersion !== null && !siteId) ? (
+    <PlantProvider key={`${state.index.plant.site.id}:${state.version}`} index={state.index}>
+      {layout}
+    </PlantProvider>
+  ) : (
+    layout
   )
 }
 

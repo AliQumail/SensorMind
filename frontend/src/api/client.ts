@@ -20,16 +20,18 @@ const TOKEN_KEY = 'sensormind.token'
 
 export const getToken = (): string | null => {
   try {
-    return localStorage.getItem(TOKEN_KEY)
+    return localStorage.getItem(TOKEN_KEY) ?? sessionStorage.getItem(TOKEN_KEY)
   } catch {
     return null
   }
 }
 
-export const setToken = (token: string | null) => {
+/** `remember` keeps the token across browser restarts (localStorage); otherwise it lasts for the tab (sessionStorage). */
+export const setToken = (token: string | null, remember = false) => {
   try {
-    if (token) localStorage.setItem(TOKEN_KEY, token)
-    else localStorage.removeItem(TOKEN_KEY)
+    localStorage.removeItem(TOKEN_KEY)
+    sessionStorage.removeItem(TOKEN_KEY)
+    if (token) (remember ? localStorage : sessionStorage).setItem(TOKEN_KEY, token)
   } catch {
     // Storage unavailable: the session just won't survive a reload.
   }

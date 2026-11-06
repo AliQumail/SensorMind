@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { SiteSummary, Tenant } from '../../api/types'
+import { NotificationBell } from './NotificationBell'
 import { useConnectionState, type ConnectionState } from '../../state/readingsStore'
 
 const CONNECTION: Record<ConnectionState, { label: string; dot: string }> = {
@@ -161,6 +162,7 @@ export function AppHeader({ nav }: { nav: HeaderNav }) {
           <span className={`size-2 rounded-full ${connection.dot}`} />
           {connection.label}
         </div>
+        <NotificationBell />
         <button
           type="button"
           onClick={nav.onLogout}

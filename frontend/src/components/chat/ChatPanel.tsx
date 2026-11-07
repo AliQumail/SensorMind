@@ -149,7 +149,7 @@ export function ChatPanel() {
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             maxLength={1000}
-            placeholder="e.g. Why is P-101 bearing temperature rising?"
+            placeholder="e.g. Why is cabinet R-03 getting warmer?"
             className="min-w-0 flex-1 rounded-lg border border-border bg-surface-raised px-3 py-2 text-sm placeholder:text-text-muted"
           />
           <button

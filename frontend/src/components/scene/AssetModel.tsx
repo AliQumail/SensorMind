@@ -118,6 +118,8 @@ function Geometry({
 
 function bodyColor(type: Asset['type'], colors: ThemeColors) {
   switch (type) {
+    case 'refrigerator':
+      return colors.refrigerator
     case 'pump':
       return colors.pump
     case 'compressor':

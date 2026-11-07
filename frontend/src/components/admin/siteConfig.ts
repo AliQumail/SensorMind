@@ -64,7 +64,7 @@ export function isTenantConfig(value: unknown): value is TenantConfig {
   return typeof config?.tenant === 'string' && Array.isArray(config.sites) && config.sites.every(isSiteShape)
 }
 
-export const ASSET_TYPES: AssetType[] = ['pump', 'compressor', 'motor', 'tank', 'fan', 'valve', 'heat-exchanger', 'other']
+export const ASSET_TYPES: AssetType[] = ['refrigerator', 'pump', 'compressor', 'motor', 'tank', 'fan', 'valve', 'heat-exchanger', 'other']
 export const ASSET_SHAPES: AssetShape[] = ['box', 'cylinder', 'horizontal-cylinder', 'sphere']
 
 export const slug = (text: string) =>

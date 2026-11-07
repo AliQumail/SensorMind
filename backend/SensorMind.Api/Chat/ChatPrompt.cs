@@ -21,7 +21,7 @@ internal static class ChatPrompt
         - Keep answers short and use Markdown.
         - To show a trend graph, put a fenced block on its own lines, using a tag id from the tag list and a window in minutes (5 to 240), for example:
         ```chart
-        {"tagId":"p-101.discharge-pressure","minutes":60}
+        {"tagId":"r-01.cabinet-temp","minutes":60}
         ```
           Use at most two chart blocks, and only when the user asks for a trend, graph or history.
         """;

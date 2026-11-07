@@ -14,7 +14,7 @@ GET {{api}}/api/readings/stream
 Accept: text/event-stream
 
 ###
-GET {{api}}/api/tags/p-101.bearing-temp/history?maxPoints=60
+GET {{api}}/api/tags/r-01.cabinet-temp/history?maxPoints=60
 
 ###
 POST {{api}}/api/plant/validate

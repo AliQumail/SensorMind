@@ -6,16 +6,16 @@ A plant is one JSON file: **Site → Floors → Assets → Tags**. The API loads
 
 | Level | Meaning in SensorMind | Example |
 |-------|-----------------------|---------|
-| **Site** | The plant as a whole. | Harbor Works |
-| **Floor** | One level of the building, drawn in its own 3D view. | Ground Floor - Utilities |
-| **Asset** | A machine you monitor, such as a pump or compressor. It is the unit you select in the tree or the 3D view, and the one you ask the assistant about. | Cooling Water Pump P-101 |
-| **Tag** | One sensor signal on an asset, with a unit and nominal and alarm limits. | Bearing Temperature (°C) |
+| **Site** | The plant as a whole. | Walnut Berlin Mitte |
+| **Floor** | One level of the building, drawn in its own 3D view. | Sales Floor |
+| **Asset** | A machine you monitor, such as a refrigerated cabinet. It is the unit you select in the tree or the 3D view, and the one you ask the assistant about. | Chilled Cabinet R-01 |
+| **Tag** | One sensor signal on an asset, with a unit and nominal and alarm limits. | Cabinet Temperature (°C) |
 
 ```mermaid
 flowchart TD
-  S["Site: Harbor Works"] --> F["Floor: Ground Floor - Utilities"]
-  F --> A["Asset: Cooling Water Pump P-101"]
-  A --> T["Tag: Bearing Temperature, °C, nominal 42 to 62, alarm above 80"]
+  S["Site: Walnut Berlin Mitte"] --> F["Floor: Sales Floor"]
+  F --> A["Asset: Chilled Cabinet R-01"]
+  A --> T["Tag: Cabinet Temperature, °C, nominal 1 to 4, alarm above 7"]
 ```
 
 To check a file without restarting the API:
@@ -27,7 +27,7 @@ curl -X POST http://localhost:5080/api/plant/validate \
 
 ```json
 { "valid": false, "errors": [
-  { "path": "$.site.floors[0].assets[1].tags[2].alarmHigh", "message": "Must be above nominalMax (62)." }
+  { "path": "$.site.floors[0].assets[1].tags[2].alarmHigh", "message": "Must be above nominalMax (4)." }
 ] }
 ```
 
@@ -37,22 +37,22 @@ curl -X POST http://localhost:5080/api/plant/validate \
 {
   "schemaVersion": 1,                       // optional, defaults to 1
   "site": {
-    "id": "site-harbor", "name": "Harbor Works", "location": "optional",
+    "id": "site-walnut-berlin-mitte", "name": "Walnut Berlin Mitte", "location": "optional",
     "floors": [{
-      "id": "floor-ground", "name": "Ground Floor", "level": 0,
-      "size": { "width": 30, "depth": 18 },  // metres
+      "id": "floor-sales", "name": "Sales Floor", "level": 0,
+      "size": { "width": 30, "depth": 8 },  // metres
       "assets": [{
-        "id": "p-101", "name": "Cooling Water Pump P-101",
-        "type": "pump", "manufacturer": "Grundfos", "model": "CR 32-2",
+        "id": "r-01", "name": "Chilled Cabinet R-01",
+        "type": "refrigerator", "manufacturer": "Generic", "model": "Chilled cabinet",
         "description": "optional",
-        "position": { "x": 5, "z": 5 },    // footprint centre from the floor corner; optional "y" = base elevation
-        "size": { "x": 0.7, "y": 1.5, "z": 0.7 },
+        "position": { "x": 2.2, "z": 4 },    // footprint centre from the floor corner; optional "y" = base elevation
+        "size": { "x": 2.4, "y": 2, "z": 0.9 },
         "rotation": 0,                     // optional, degrees around the vertical axis
-        "shape": "cylinder",               // optional, defaults by type
+        "shape": "box",                    // optional, defaults by type
         "tags": [{
-          "id": "p-101.bearing-temp", "name": "Bearing Temperature", "unit": "°C",
-          "nominalMin": 42, "nominalMax": 62,
-          "alarmHigh": 80                  // optional; alarmLow likewise
+          "id": "r-01.cabinet-temp", "name": "Cabinet Temperature", "unit": "°C",
+          "nominalMin": 1, "nominalMax": 4,
+          "alarmHigh": 7                   // optional; alarmLow likewise
         }]
       }]
     }]
@@ -64,7 +64,7 @@ curl -X POST http://localhost:5080/api/plant/validate \
 
 - **Ids** are lowercase letters and digits separated by `-`, `_` or `.`. They must be unique across the whole plant for each kind (floors, assets, tags).
 - **Floor `level`** must be unique.
-- **`type`** is one of `pump`, `compressor`, `motor`, `tank`, `fan`, `valve`, `heat-exchanger`, `other`.
+- **`type`** is one of `refrigerator`, `pump`, `compressor`, `motor`, `tank`, `fan`, `valve`, `heat-exchanger`, `other`.
 - **`shape`** is one of `box`, `cylinder`, `horizontal-cylinder`, `sphere`. The default is a horizontal cylinder for pumps, motors and heat exchangers, a cylinder for tanks and fans, a sphere for valves, and a box otherwise.
 - **Sizes** must be greater than 0. The rotated footprint must fit inside the floor.
 - **Tags:** `nominalMin < nominalMax`. If set, `alarmLow < nominalMin` and `alarmHigh > nominalMax`.

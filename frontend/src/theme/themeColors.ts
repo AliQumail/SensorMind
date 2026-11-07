@@ -16,6 +16,7 @@ const TOKENS = {
   floor: '--scene-floor',
   grid: '--scene-grid',
   light: '--scene-light',
+  refrigerator: '--equip-refrigerator',
   pump: '--equip-pump',
   compressor: '--equip-compressor',
   motor: '--equip-motor',

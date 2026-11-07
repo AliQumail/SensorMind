@@ -1,6 +1,7 @@
 // Mirrors the .NET API contracts (camelCase JSON, kebab-case enums, epoch-ms timestamps).
 
 export type AssetType =
+  | 'refrigerator'
   | 'pump'
   | 'compressor'
   | 'motor'

@@ -1,48 +1,44 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Http.Features;
-using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using SensorMind.Core.Plant;
 using SensorMind.Core.Sensors;
 using SensorMind.Infrastructure.Sites;
 
-namespace SensorMind.Api.Endpoints;
+namespace SensorMind.Api.Controllers;
 
-internal static class SensorEndpoints
+[ApiController]
+[Route("api")]
+public sealed class ReadingsController(
+    ISensorStore store,
+    IReadingFeed feed,
+    PlantCatalog catalog,
+    TimeProvider time,
+    IOptions<Microsoft.AspNetCore.Http.Json.JsonOptions> jsonOptions) : ControllerBase
 {
     private static readonly TimeSpan DefaultHistoryWindow = TimeSpan.FromHours(1);
     private const int DefaultMaxPoints = 300;
     private const int MaxPointsLimit = 2000;
 
-    public static RouteGroupBuilder MapSensorEndpoints(this RouteGroupBuilder api)
-    {
-        var readings = api.MapGroup("/readings").WithTags("Readings");
-        readings.MapGet("/latest", (ISensorStore store) => TypedResults.Ok(store.GetLatest().Select(ReadingDto.From)));
-        readings.MapGet("/stream", StreamAsync)
-            .WithSummary("Live readings as SSE (never ends; Swagger UI cannot show it live). Token may be sent as ?access_token=.");
-
-        api.MapGet("/tags/{tagId}/history", GetHistory).WithTags("Readings");
-
-        return api;
-    }
+    [HttpGet("readings/latest")]
+    public IActionResult Latest() => Ok(store.GetLatest().Select(ReadingDto.From));
 
     /// <summary>
     /// Server-Sent Events: an initial "readings" event with the latest value of every tag, then one per
     /// sampling tick. SSE over WebSockets because traffic is one-way and it survives proxies and
     /// reconnects (EventSource retries automatically) with no extra client code.
     /// </summary>
-    private static async Task StreamAsync(
-        HttpContext context,
-        ISensorStore store,
-        IReadingFeed feed,
-        IOptions<Microsoft.AspNetCore.Http.Json.JsonOptions> jsonOptions)
+    [HttpGet("readings/stream")]
+    [EndpointSummary("Live readings as SSE (never ends; Swagger UI cannot show it live). Token may be sent as ?access_token=.")]
+    public async Task Stream()
     {
-        var cancellationToken = context.RequestAborted;
-        var response = context.Response;
+        var cancellationToken = HttpContext.RequestAborted;
+        var response = Response;
         response.Headers.ContentType = "text/event-stream";
         response.Headers.CacheControl = "no-cache";
         response.Headers["X-Accel-Buffering"] = "no"; // stop nginx-style proxies from buffering
-        context.Features.Get<IHttpResponseBodyFeature>()?.DisableBuffering();
+        HttpContext.Features.Get<IHttpResponseBodyFeature>()?.DisableBuffering();
 
         var json = jsonOptions.Value.SerializerOptions;
         try
@@ -61,6 +57,42 @@ internal static class SensorEndpoints
         }
     }
 
+    [HttpGet("tags/{tagId}/history")]
+    public IActionResult GetHistory(string tagId, DateTimeOffset? from, DateTimeOffset? to, int? maxPoints)
+    {
+        if (!catalog.TryGetTag(tagId, out var location))
+        {
+            return new JsonResult($"Unknown tag '{tagId}'.") { StatusCode = StatusCodes.Status404NotFound };
+        }
+
+        var end = to ?? time.GetUtcNow();
+        var start = from ?? end - DefaultHistoryWindow;
+        var limit = maxPoints ?? DefaultMaxPoints;
+
+        if (start >= end)
+        {
+            ModelState.AddModelError("from", "'from' must be earlier than 'to'.");
+        }
+
+        if (limit is < 2 or > MaxPointsLimit)
+        {
+            ModelState.AddModelError("maxPoints", $"Must be between 2 and {MaxPointsLimit}.");
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        var points = TimeSeriesDownsampler.Average(store.GetHistory(tagId, start, end), limit);
+        return Ok(new TagHistoryDto(
+            tagId,
+            location.Tag.Unit,
+            start.ToUnixTimeMilliseconds(),
+            end.ToUnixTimeMilliseconds(),
+            [.. points.Select(p => new PointDto(p.Timestamp.ToUnixTimeMilliseconds(), Math.Round(p.Value, 3)))]));
+    }
+
     private static async Task WriteEventAsync(
         HttpResponse response,
         IReadOnlyList<SensorReading> readings,
@@ -71,58 +103,15 @@ internal static class SensorEndpoints
         await response.WriteAsync($"event: readings\ndata: {payload}\n\n", cancellationToken);
         await response.Body.FlushAsync(cancellationToken);
     }
-
-    private static Results<Ok<TagHistoryDto>, NotFound<string>, ValidationProblem> GetHistory(
-        string tagId,
-        DateTimeOffset? from,
-        DateTimeOffset? to,
-        int? maxPoints,
-        PlantCatalog catalog,
-        ISensorStore store,
-        TimeProvider time)
-    {
-        if (!catalog.TryGetTag(tagId, out var location))
-        {
-            return TypedResults.NotFound($"Unknown tag '{tagId}'.");
-        }
-
-        var end = to ?? time.GetUtcNow();
-        var start = from ?? end - DefaultHistoryWindow;
-        var limit = maxPoints ?? DefaultMaxPoints;
-
-        var errors = new Dictionary<string, string[]>();
-        if (start >= end)
-        {
-            errors["from"] = ["'from' must be earlier than 'to'."];
-        }
-
-        if (limit is < 2 or > MaxPointsLimit)
-        {
-            errors["maxPoints"] = [$"Must be between 2 and {MaxPointsLimit}."];
-        }
-
-        if (errors.Count > 0)
-        {
-            return TypedResults.ValidationProblem(errors);
-        }
-
-        var points = TimeSeriesDownsampler.Average(store.GetHistory(tagId, start, end), limit);
-        return TypedResults.Ok(new TagHistoryDto(
-            tagId,
-            location.Tag.Unit,
-            start.ToUnixTimeMilliseconds(),
-            end.ToUnixTimeMilliseconds(),
-            [.. points.Select(p => new PointDto(p.Timestamp.ToUnixTimeMilliseconds(), Math.Round(p.Value, 3)))]));
-    }
 }
 
 // Sensor payloads use Unix epoch milliseconds: compact on the wire and native to JS Date and charts.
 
-internal sealed record ReadingDto(string TagId, long Ts, double Value, TagStatus Status)
+public sealed record ReadingDto(string TagId, long Ts, double Value, TagStatus Status)
 {
     public static ReadingDto From(SensorReading r) => new(r.TagId, r.Timestamp.ToUnixTimeMilliseconds(), r.Value, r.Status);
 }
 
-internal sealed record TagHistoryDto(string TagId, string Unit, long From, long To, IReadOnlyList<PointDto> Points);
+public sealed record TagHistoryDto(string TagId, string Unit, long From, long To, IReadOnlyList<PointDto> Points);
 
-internal sealed record PointDto(long T, double V);
+public sealed record PointDto(long T, double V);

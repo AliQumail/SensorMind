@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Generic refrigeration demo manual</title>
+<style>
+@page { size: A4; margin: 22mm 20mm; }
+body { font-family: Arial, Helvetica, sans-serif; font-size: 11.5pt; line-height: 1.5; color: #222; margin: 0; }
+section { page-break-after: always; }
+section:last-child { page-break-after: auto; }
+h1 { font-size: 20pt; margin: 0 0 12pt; }
+h2 { font-size: 13pt; margin: 14pt 0 4pt; }
+.note { border: 1px solid #444; padding: 8pt 10pt; margin: 0 0 14pt; font-weight: bold; }
+table { border-collapse: collapse; margin: 6pt 0; }
+td, th { border: 1px solid #888; padding: 4pt 8pt; text-align: left; }
+</style>
+</head>
+<body>
+
+<section>
+<h1>Generic refrigeration demo manual</h1>
+<p class="note">Demo document written for SensorMind. Not published by any manufacturer.</p>
+<h2>1. Operating overview</h2>
+<p>This manual covers the chilled cabinets and freezer cabinets of the sample site Walnut Berlin Mitte, on the Sales Floor and on the Storage Floor. Chilled cabinets (names such as Chilled Cabinet R-01) keep fresh goods cool. Freezer cabinets (names such as Freezer Cabinet F-01) keep frozen goods frozen.</p>
+<p>Each cabinet has a compressor that runs in cycles, a condenser that gives off heat, an evaporator with a fan that moves cold air through the cabinet, and a door or lid. The air temperature in the cabinet is held inside a set band. Every cabinet is monitored with three tags:</p>
+<table>
+<tr><th>Tag</th><th>Unit</th><th>What it shows</th></tr>
+<tr><td>Cabinet Temperature</td><td>&deg;C</td><td>Air temperature inside the cabinet</td></tr>
+<tr><td>Compressor Current</td><td>A</td><td>Electrical current drawn by the compressor</td></tr>
+<tr><td>Door Open Time</td><td>%</td><td>Share of recent time the door was open</td></tr>
+</table>
+<p>Status follows one rule for every tag. A value inside the nominal band is normal, a value outside the band is a warning, and a value at or beyond an alarm limit is an alarm.</p>
+</section>
+
+<section>
+<h1>Temperature limits</h1>
+<h2>2. Cabinet Temperature limits</h2>
+<table>
+<tr><th>Cabinet type</th><th>Nominal band</th><th>Warning</th><th>Alarm</th></tr>
+<tr><td>Chilled cabinet</td><td>0 to 4 &deg;C (the sample plant uses 1 to 4 &deg;C)</td><td>Above 4 &deg;C</td><td>Above 7 &deg;C</td></tr>
+<tr><td>Freezer cabinet</td><td>-18 &deg;C or colder (the sample plant uses -21 to -18 &deg;C)</td><td>Warmer than -18 &deg;C</td><td>Above -15 &deg;C</td></tr>
+</table>
+<p>The sample plant also sets a low alarm limit so that over-cooling is noticed: -1 &deg;C for chilled cabinets and -25 &deg;C for freezer cabinets. Fresh goods can freeze below 0 &deg;C, and a freezer that runs far colder than needed wastes energy.</p>
+<h2>Reading the value</h2>
+<p>A short rise right after a delivery, restocking or a long door opening is normal and settles within minutes. A rise that stays, or that grows, is not normal. Look at the trend of Cabinet Temperature together with Door Open Time and Compressor Current before deciding on a cause.</p>
+</section>
+
+<section>
+<h1>Rising cabinet temperature</h1>
+<h2>3. Causes and what to check</h2>
+<table>
+<tr><th>Cause</th><th>What to check</th></tr>
+<tr><td>Door open too long</td><td>Door Open Time is high. Check that doors and lids close fully and the gasket seals. Ask staff to keep doors closed.</td></tr>
+<tr><td>Overloading or blocked airflow</td><td>Check that goods stay below the load line and do not cover the air outlets or return grille.</td></tr>
+<tr><td>Dirty condenser</td><td>Compressor Current is high and the temperature creeps up. Check for dust and dirt on the condenser and clean it as the site procedure says.</td></tr>
+<tr><td>Defrost fault</td><td>Heavy frost on the evaporator or a temperature that rises in steps. See the defrost section.</td></tr>
+<tr><td>Refrigerant loss</td><td>The compressor runs a long time but the cabinet does not cool. Compressor Current may be low. Call a qualified refrigeration technician.</td></tr>
+<tr><td>Compressor fault</td><td>Compressor Current is far too high or near zero. See the compressor current section.</td></tr>
+</table>
+<p>Work from the simplest cause to the hardest. Doors, loading and airflow come first, because staff can fix them at once. Do not open the refrigerant circuit unless you are qualified to do so.</p>
+</section>
+
+<section>
+<h1>Compressor current</h1>
+<h2>4. Compressor Current high or low</h2>
+<p>Compressor Current shows how hard the compressor works. A freezer cabinet draws more current than a chilled cabinet. The sample plant uses a nominal band of 1.4 to 2.6 A with an alarm above 3.4 A and a low alarm below 0.6 A for chilled cabinets, and 2.0 to 3.6 A with an alarm above 4.6 A and a low alarm below 0.8 A for freezer cabinets.</p>
+<h2>Current too high</h2>
+<p>A high current means the compressor is working against extra load or resistance. Typical reasons are a dirty condenser, a blocked condenser fan, a very warm room, a cabinet that was just loaded with warm goods, or a failing compressor. Check the condenser and its airflow first. If the current stays high after cleaning, stop and call a technician, because a compressor that draws too much current can overheat and fail.</p>
+<h2>Current too low</h2>
+<p>A low current means the compressor does little work or is not running. Typical reasons are a tripped protection, a failed start component, a power supply fault, or refrigerant loss. If Cabinet Temperature rises while the current is near zero, treat it as an urgent fault and follow the food-safety section.</p>
+</section>
+
+<section>
+<h1>Door open alarm and defrost</h1>
+<h2>5. Door Open Time alarm procedure</h2>
+<p>Door Open Time is the share of recent time the door was open. The nominal band is 0 to 15 %. An alarm is raised above 40 %.</p>
+<p>1. Go to the cabinet and close the door or lid.<br>
+2. Check that the door closes fully and that nothing blocks it.<br>
+3. Check the gasket for gaps or damage.<br>
+4. Watch Cabinet Temperature for the next 30 minutes. If it returns into the nominal band, note the event and finish.<br>
+5. If the door cannot be closed or sealed, or the temperature keeps rising, escalate as described in the last section.</p>
+<h2>6. Defrost cycles</h2>
+<p>Frost builds up on the evaporator and blocks airflow. A defrost cycle stops cooling for a short time and melts the frost. During a defrost cycle Cabinet Temperature rises a little and then falls again. This is normal if it recovers within the time set for the cabinet. A cabinet that never defrosts, or that stays warm after defrost, has a defrost fault. Heavy frost, ice on the floor of the cabinet or a temperature that rises step by step after each cycle are the usual signs. Report a suspected defrost fault to the technician.</p>
+</section>
+
+<section>
+<h1>Food safety, escalation and logging</h1>
+<h2>7. Food-safety response</h2>
+<p>When a cabinet is in alarm, follow the site's own HACCP plan and the local rules that apply. This demo manual does not set legal limits, holding times or rules for discarding food. The site's HACCP plan and the local authority decide what happens to the goods, for example whether they are moved, checked or discarded.</p>
+<p>In every case: move goods that are at risk to a working cabinet if the HACCP plan allows it, do not sell goods that the plan says must be held back, and keep the cabinet closed as much as possible.</p>
+<h2>8. Escalation</h2>
+<p>1. A warning: check doors, loading and airflow, and watch the trend.<br>
+2. An alarm, or a warning that does not clear in the time the site sets: tell the store manager.<br>
+3. A suspected compressor, refrigerant or defrost fault: call a qualified refrigeration technician.<br>
+4. Any case where food may be at risk: follow the HACCP plan.</p>
+<h2>9. Logging</h2>
+<p>Write down every alarm: the cabinet name, the tag, the time, the value, the cause found, the action taken and who did it. Record what happened to the goods. Keep the records as the site's HACCP plan requires.</p>
+</section>
+
+</body>
+</html>

@@ -47,7 +47,7 @@ export function LoginPage({ onLoggedIn }: { onLoggedIn: (user: LoginResult) => v
         <div className="flex min-h-0 flex-1 items-center justify-center [container-type:size]">
           <img
             src={plantIllustration}
-            alt="Isometric plant with a process building, utility building, chimney stack, water tank and pump skid"
+            alt="Isometric two-storey building with callouts for a chilled cabinet, a freezer and a cabinet whose temperature is rising"
             className="aspect-[1100/575] w-[min(100cqw,calc(100cqh*1100/575))] rounded-2xl shadow-[0_12px_40px_rgb(59_47_40/0.12)]"
           />
         </div>

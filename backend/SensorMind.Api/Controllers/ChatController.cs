@@ -4,24 +4,34 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Http.Features;
-using SensorMind.Api.Endpoints;
+using Microsoft.AspNetCore.Mvc;
+using SensorMind.Api.Chat;
 using SensorMind.Api.Logging;
 using SensorMind.Core.Plant;
 using SensorMind.Core.Sensors;
 using SensorMind.Infrastructure.Manuals;
 using SensorMind.Infrastructure.Sites;
 
-namespace SensorMind.Api.Chat;
+namespace SensorMind.Api.Controllers;
 
-internal sealed record ChatTurn(string? Role, string? Content);
+public sealed record ChatTurn(string? Role, string? Content);
 
-internal sealed record ChatRequest(string? Question, string? AssetId, List<ChatTurn>? History);
+public sealed record ChatRequest(string? Question, string? AssetId, List<ChatTurn>? History);
 
-internal sealed record ChatCitation(string Source, int Page);
+public sealed record ChatCitation(string Source, int Page);
 
-internal sealed record ChatChart(string TagId, string Name, string Unit, double NominalMin, double NominalMax, long From, long To, IReadOnlyList<PointDto> Points);
+public sealed record ChatChart(string TagId, string Name, string Unit, double NominalMin, double NominalMax, long From, long To, IReadOnlyList<PointDto> Points);
 
-internal static partial class ChatEndpoints
+[ApiController]
+[Route("api/chat")]
+public sealed partial class ChatController(
+    PlantCatalog catalog,
+    ISensorStore store,
+    OpenRouterClient openRouter,
+    ManualVectorStore vectors,
+    ChatRateLimiter limiter,
+    TimeProvider time,
+    ILogger<ChatController> logger) : ControllerBase
 {
     public const string KeyHeader = "X-OpenRouter-Key";
 
@@ -40,62 +50,47 @@ internal static partial class ChatEndpoints
     [GeneratedRegex(@"```chart\s*(\{.*?\})\s*```", RegexOptions.Singleline)]
     private static partial Regex ChartPattern();
 
-    public static RouteGroupBuilder MapChatEndpoints(this RouteGroupBuilder api)
-    {
-        var chat = api.MapGroup("/chat").WithTags("Chat");
+    [HttpGet("status")]
+    public IActionResult Status() =>
+        Ok(new { configured = openRouter.HasConfiguredKey, limit = limiter.Limit, remaining = limiter.Remaining(Client()) });
 
-        chat.MapGet("/status", (HttpContext context, OpenRouterClient client, ChatRateLimiter limiter) =>
-            new { configured = client.HasConfiguredKey, limit = limiter.Limit, remaining = limiter.Remaining(Client(context)) });
+    private string Client() => HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
-        chat.MapPost("/", AskAsync)
-            .WithSummary("Ask a question; the answer streams as SSE events (Swagger UI shows it only after it finishes).");
-        return api;
-    }
-
-    private static string Client(HttpContext context) => context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-
-    private static async Task<IResult> AskAsync(
-        ChatRequest request,
-        HttpContext context,
-        PlantCatalog catalog,
-        ISensorStore store,
-        OpenRouterClient openRouter,
-        ManualVectorStore vectors,
-        ChatRateLimiter limiter,
-        TimeProvider time,
-        ILogger<Program> logger)
+    [HttpPost]
+    [EndpointSummary("Ask a question; the answer streams as SSE events (Swagger UI shows it only after it finishes).")]
+    public async Task<IActionResult> Ask(ChatRequest request)
     {
         var question = request.Question?.Trim();
         if (string.IsNullOrEmpty(question) || question.Length > MaxQuestionLength)
         {
-            return Results.BadRequest(new { message = $"Ask a question of up to {MaxQuestionLength} characters." });
+            return BadRequest(new { message = $"Ask a question of up to {MaxQuestionLength} characters." });
         }
 
         // The user's own key is used for this request only. It is never logged or stored.
-        var userKey = context.Request.Headers[KeyHeader].ToString();
+        var userKey = Request.Headers[KeyHeader].ToString();
         var ownKey = !string.IsNullOrWhiteSpace(userKey);
         if (!ownKey && !openRouter.HasConfiguredKey)
         {
-            return Results.Json(
-                new { message = "Chat isn't configured yet. Ask your administrator to set an OpenRouter key, or use your own key." },
-                statusCode: (int)HttpStatusCode.ServiceUnavailable);
+            return StatusCode(
+                (int)HttpStatusCode.ServiceUnavailable,
+                new { message = "Chat isn't configured yet. Ask your administrator to set an OpenRouter key, or use your own key." });
         }
 
-        var ip = Client(context);
+        var ip = Client();
         if (!ownKey && !limiter.TryTake(ip))
         {
-            return Results.Json(
-                new { message = $"You have used your {limiter.Limit} free questions for today. Add your own OpenRouter key for unlimited use, or come back tomorrow." },
-                statusCode: (int)HttpStatusCode.TooManyRequests);
+            return StatusCode(
+                (int)HttpStatusCode.TooManyRequests,
+                new { message = $"You have used your {limiter.Limit} free questions for today. Add your own OpenRouter key for unlimited use, or come back tomorrow." });
         }
 
         var apiKey = ownKey ? userKey : null;
-        var cancellationToken = context.RequestAborted;
-        var response = context.Response;
+        var cancellationToken = HttpContext.RequestAborted;
+        var response = Response;
         response.Headers.ContentType = "text/event-stream";
         response.Headers.CacheControl = "no-cache";
         response.Headers["X-Accel-Buffering"] = "no";
-        context.Features.Get<IHttpResponseBodyFeature>()?.DisableBuffering();
+        HttpContext.Features.Get<IHttpResponseBodyFeature>()?.DisableBuffering();
 
         try
         {
@@ -153,11 +148,11 @@ internal static partial class ChatEndpoints
         catch (Exception ex)
         {
             logger.LogWarning("Chat request failed: {Message}", ex.Message);
-            context.Items[RequestLogMiddleware.ErrorKey] = FriendlyError(ex);
+            HttpContext.Items[RequestLogMiddleware.ErrorKey] = FriendlyError(ex);
             await WriteAsync(response, "error", new { message = FriendlyError(ex) }, CancellationToken.None);
         }
 
-        return Results.Empty;
+        return new EmptyResult();
     }
 
     /// <summary>Manual excerpts for the question. If the manuals are unavailable the answer continues with sensor data only.</summary>
@@ -235,49 +230,4 @@ internal static partial class ChatEndpoints
     }
 
     private sealed record ChartSpec(string? TagId, int? Minutes);
-}
-
-/// <summary>Free questions per client address per UTC day, counted in memory (resets on restart).</summary>
-internal sealed class ChatRateLimiter(TimeProvider time, IConfiguration configuration)
-{
-    private readonly object _lock = new();
-    private readonly Dictionary<string, int> _used = [];
-    private DateOnly _day;
-
-    public int Limit => configuration.GetValue("Chat:FreeQueriesPerDay", 10);
-
-    public bool TryTake(string client)
-    {
-        lock (_lock)
-        {
-            Roll();
-            var used = _used.GetValueOrDefault(client);
-            if (used >= Limit)
-            {
-                return false;
-            }
-
-            _used[client] = used + 1;
-            return true;
-        }
-    }
-
-    public int Remaining(string client)
-    {
-        lock (_lock)
-        {
-            Roll();
-            return Math.Max(0, Limit - _used.GetValueOrDefault(client));
-        }
-    }
-
-    private void Roll()
-    {
-        var today = DateOnly.FromDateTime(time.GetUtcNow().UtcDateTime);
-        if (today != _day)
-        {
-            _day = today;
-            _used.Clear();
-        }
-    }
 }

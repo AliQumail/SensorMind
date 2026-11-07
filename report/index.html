@@ -70,7 +70,7 @@
 
 <h2>3. Methods</h2>
 <h3>3.1 &ndash; Plant Configuration Model</h3>
-<p class="first">The plant is described as a tree with four levels (Figure 2). A site is the plant as a whole. A floor is one level of the building and has its own three-dimensional view. An asset is a machine that is monitored, such as a pump or a compressor; it is the unit that a user selects and asks the assistant about. A tag is one sensor signal of an asset, for example a bearing temperature, with its unit and its nominal and alarm limits. Assets sit directly under a floor, with no grouping between the two.</p>
+<p class="first">The plant is described as a tree with four levels (Figure 2). A site is the plant as a whole. A floor is one level of the building and has its own three-dimensional view. An asset is a machine that is monitored, such as a refrigerated cabinet; it is the unit that a user selects and asks the assistant about. A tag is one sensor signal of an asset, for example a cabinet temperature, with its unit and its nominal and alarm limits. Assets sit directly under a floor, with no grouping between the two.</p>
 
 <figure class="wide f2">
 <svg viewBox="0 0 760 104" xmlns="http://www.w3.org/2000/svg" font-family="Times New Roman, Times, serif" font-size="11.5">
@@ -84,10 +84,10 @@
 </g>
 <g fill="#111" text-anchor="middle">
   <text x="84" y="16" font-weight="bold">Site</text><text x="284" y="16" font-weight="bold">Floor</text><text x="484" y="16" font-weight="bold">Asset</text><text x="680" y="16" font-weight="bold">Tag</text>
-  <text x="84" y="50">Harbor Works</text><text x="84" y="66" font-size="10">the plant as a whole</text>
-  <text x="284" y="46">Ground Floor</text><text x="284" y="60">Utilities (level 0)</text><text x="284" y="76" font-size="10">own 3D view</text>
-  <text x="484" y="46">Cooling Water</text><text x="484" y="60">Pump P-101</text><text x="484" y="76" font-size="10">selected and asked about</text>
-  <text x="680" y="46">Bearing Temperature</text><text x="680" y="60">&#176;C, nominal 42 to 62,</text><text x="680" y="74" font-size="10">alarm above 80</text>
+  <text x="84" y="50">Walnut Berlin Mitte</text><text x="84" y="66" font-size="10">the plant as a whole</text>
+  <text x="284" y="46">Sales Floor</text><text x="284" y="60">(level 0)</text><text x="284" y="76" font-size="10">own 3D view</text>
+  <text x="484" y="46">Chilled Cabinet</text><text x="484" y="60">R-01</text><text x="484" y="76" font-size="10">selected and asked about</text>
+  <text x="680" y="46">Cabinet Temperature</text><text x="680" y="60">&#176;C, nominal 1 to 4,</text><text x="680" y="74" font-size="10">alarm above 7</text>
   <text x="184" y="48" font-size="10">1..n</text><text x="384" y="48" font-size="10">1..n</text><text x="584" y="48" font-size="10">1..n</text>
 </g>
 </svg>
@@ -95,14 +95,16 @@
 </figure>
 
 <p>An asset has a type, manufacturer, model and a placement (position, size, rotation and shape hint) used by the three-dimensional view. A tag has a unit, a nominal band and optional lower and upper alarm limits. A tag is in alarm when its value reaches an alarm limit, in warning when it lies outside the nominal band, and normal otherwise. The interface rolls statuses up, so an asset or a floor shows the worst status below it.</p>
-<p>The parser reads the JSON into nullable document classes and then builds immutable domain records. A missing field therefore becomes an error with a JSON path instead of an exception, and all errors are collected in one pass. Unknown properties are errors. Identifiers are lowercase kebab-case and unique, and the rotated footprint of each asset must lie inside its floor. The sample file describes one site with two floors, ten assets and 36 tags.</p>
+<p>The parser reads the JSON into nullable document classes and then builds immutable domain records. A missing field therefore becomes an error with a JSON path instead of an exception, and all errors are collected in one pass. Unknown properties are errors. Identifiers are lowercase kebab-case and unique, and the rotated footprint of each asset must lie inside its floor. The sample file describes one site with two floors, 20 assets (refrigerated cabinets) and 60 tags. The sample plant is a fictional supermarket, and it and its demo manual were written for this project.</p>
 
 <h3>3.2 &ndash; Sensor Simulation</h3>
 <p class="first">Each tag is simulated as an Ornstein&ndash;Uhlenbeck process, a mean-reverting random walk, around the centre of its nominal band. The time constant of the reversion is 90 s, and the noise is scaled so that the stationary standard deviation is 0.18 of the half-width of the band. Three kinds of Poisson-distributed event are added per tag: slow drifts (0.4 per hour), whose triangular offset peaks at 1.2 half-widths and can therefore leave the nominal band; single-sample spikes (0.6 per hour); and short excursions beyond an alarm limit (one in twelve per hour). A sample is produced every two seconds, and a fixed seed makes a run repeatable. These rates are defaults of the simulation profile, chosen so that events are visible in a demonstration; they were not fitted to plant data.</p>
 <p>Twenty-four hours of history are generated at start-up so that charts are populated at once. Readings are kept in a fixed-size ring buffer per tag behind an interface, <i>ISensorStore</i>, which a historian could implement. History requests are reduced to the requested number of points by averaging buckets of equal sample count.</p>
 
 <h3>3.3 &ndash; Retrieval-Augmented Generation</h3>
-<p class="first">The pipeline follows the retrieve-then-generate pattern (Figure 3). Ingestion runs at start-up. Each PDF in the manuals folder is hashed with SHA-256, and a file whose hash is already stored in Qdrant is skipped. Otherwise the text is extracted page by page with PdfPig and split into chunks of about 450 words (roughly 600 tokens) with an overlap of 60 words. A chunk never crosses a page boundary, so each has one page number. Chunks are embedded in batches of 32, by default with <i>text-embedding-3-small</i> (1536 dimensions), and stored with cosine distance. The payload holds the text, source file, page and document hash, and, when the file name contains a manufacturer or model that occurs in the plant, those two fields. A scanned document without a text layer is skipped with a warning; no character recognition is attempted.</p>
+<p class="first">The assistant draws on two sources that answer different kinds of questions. The live sensor data (current value, status and recent trend of the tags) answers what is happening. The manuals, retrieved from the vector store, answer why it is happening and what to do: causes, procedures and limits, as in &ldquo;Why is a refrigerated cabinet getting warmer?&rdquo;. Sensor data alone suffices for questions about the current state, whereas questions about causes or procedures need the manuals. Without manuals the assistant still answers state and trend questions from the sensor data, and states when the context is insufficient for the rest.</p>
+
+<p>The pipeline follows the retrieve-then-generate pattern (Figure 3). Ingestion runs at start-up. Each PDF in the manuals folder is hashed with SHA-256, and a file whose hash is already stored in Qdrant is skipped. Otherwise the text is extracted page by page with PdfPig and split into chunks of about 450 words (roughly 600 tokens) with an overlap of 60 words. A chunk never crosses a page boundary, so each has one page number. Chunks are embedded in batches of 32, by default with <i>text-embedding-3-small</i> (1536 dimensions), and stored with cosine distance. The payload holds the text, source file, page and document hash, and, when the file name contains a manufacturer or model that occurs in the plant, those two fields. A scanned document without a text layer is skipped with a warning; no character recognition is attempted.</p>
 
 <figure class="wide">
 <svg viewBox="0 0 760 262" xmlns="http://www.w3.org/2000/svg" font-family="Times New Roman, Times, serif" font-size="11">
@@ -148,7 +150,7 @@
 <p class="first">A tenant is stored as one document, <i>{tenant, sites[]}</i>, with its sites in a PostgreSQL table reached through Entity Framework Core repositories whose interfaces are defined in Core, and a save replaces the tenant and its sites in one transaction. Site and tag identifiers must be unique across tenants, because the sensor store is keyed by tag identifier. Accounts are rows of a users table that hold a salted hash from the ASP.NET Core password hasher. A successful login returns a JSON Web Token valid for eight hours. The browser keeps it in local storage if the user asks to stay signed in, and in session storage otherwise. Endpoints require a valid token by default, and tenant management also requires the admin role. The only account created automatically is a guest account without that role. A browser <i>EventSource</i> cannot set headers, so the live stream accepts the token as a query parameter. Accounts are not bound to a tenant: any signed-in user can read every tenant.</p>
 
 <h2>4. Implementation</h2>
-<p class="first">The backend uses minimal APIs grouped by concern. The OpenRouter key and address, the model names, the Qdrant address and key, the manuals folder and the chat limit are configuration values, and none is stored in the repository. The chat endpoint accepts ten questions per client address and UTC day with the server key; the count is kept in memory and is lost at restart. A request that carries its own key in a header is exempt, and that key is used for that request only. With neither a server key nor a request key, the endpoint answers 503 with an explanatory message, which the interface displays.</p>
+<p class="first">The backend uses API controllers grouped by concern. The OpenRouter key and address, the model names, the Qdrant address and key, the manuals folder and the chat limit are configuration values, and none is stored in the repository. The chat endpoint accepts ten questions per client address and UTC day with the server key; the count is kept in memory and is lost at restart. A request that carries its own key in a header is exempt, and that key is used for that request only. With neither a server key nor a request key, the endpoint answers 503 with an explanatory message, which the interface displays.</p>
 <p>The frontend uses React 19, Vite, Three.js through react-three-fiber, Recharts, Tailwind CSS and react-markdown. Live readings are held in a store outside React and read with <i>useSyncExternalStore</i>, so a component re-renders only for the tags it shows. An asset is drawn as a primitive from its placement data and tinted by status.</p>
 <p>Notifications are derived on the client from the same stream. A tag raises one when it first reports warning or alarm, which covers assets already in that state at load, and again when it changes from one to the other. A return to normal raises none. At most 50 are kept, in memory, and selecting an item selects that asset in the tree.</p>
 
@@ -157,10 +159,10 @@
 
 <figure class="wide main">
 <img src="figures/main.png" alt="Main view">
-<figcaption><b>Figure 4.</b> Main view: asset tree (left), three-dimensional floor view (centre), and the sensor panel with the chat panel (right). The tree lists floors and assets directly. The selected pump shows its tags with live values and 15-minute sparklines.</figcaption>
+<figcaption><b>Figure 4.</b> Main view: asset tree (left), three-dimensional floor view (centre), and the sensor panel with the chat panel (right). The tree lists floors and assets directly. The selected cabinet shows its tags with live values and 15-minute sparklines.</figcaption>
 </figure>
 
-<p>The checks in Table 1 were run by hand against the throwaway instances; the repository contains no automated test suite. Every chat check used a small local server that implements the OpenAI-compatible embedding and streaming endpoints and returns a fixed reply. Retrieval quality, answer quality, latency and cost with a real model were therefore not examined, and OpenRouter itself was never called. The only manual used was a synthetic two-page PDF written for the test.</p>
+<p>The checks in Table 1 were run by hand against the throwaway instances; the repository contains no automated test suite. Every chat check used a small local server that implements the OpenAI-compatible embedding and streaming endpoints and returns a fixed reply. Retrieval quality, answer quality, latency and cost with a real model were therefore not examined, and OpenRouter itself was never called. The manual used was a fictional six-page demo document written for the project; it was ingested against the stand-in embedding server into a throwaway Qdrant instance, which gave six chunks, one per page.</p>
 
 <figure class="wide triple">
 <div class="row">
@@ -168,7 +170,7 @@
 <div class="cell" style="width:27%"><img src="figures/bell.png" alt="Notification list"><span class="sub">(b)</span></div>
 <div class="cell" style="width:27%"><img src="figures/chat.png" alt="Chat panel"><span class="sub">(c)</span></div>
 </div>
-<figcaption><b>Figure 5.</b> (a) Sign-in page. (b) Notification list, showing a warning raised by the simulator. (c) Chat panel with a streamed answer, a source chip and an inline trend graph. The answer in (c) came from a local stand-in for the model service, with a synthetic two-page manual, and shows interface behaviour only; the graph is real simulator data.</figcaption>
+<figcaption><b>Figure 5.</b> (a) Sign-in page. (b) Notification list, showing a warning raised by the simulator. (c) Chat panel with a streamed answer, a source chip and an inline trend graph. The answer in (c) came from a local stand-in for the model service, with the fictional demo manual, and shows interface behaviour only; the graph is real simulator data.</figcaption>
 </figure>
 
 
@@ -176,7 +178,7 @@
 <caption><b>Table 1.</b> Checks performed and their outcome.</caption>
 <thead><tr><th>Check</th><th>Setup</th><th>Outcome</th></tr></thead>
 <tbody>
-<tr><td>Ingestion</td><td>Synthetic two-page PDF</td><td>Two chunks stored; a second start skipped the file by its hash</td></tr>
+<tr><td>Ingestion</td><td>Fictional six-page demo PDF, stand-in embedding server</td><td>Six chunks stored with their page numbers and the manufacturer field; a second start skipped the file by its hash</td></tr>
 <tr><td>Ingestion failures</td><td>No key; Qdrant stopped; empty folder</td><td>A warning was logged each time and the API started</td></tr>
 <tr><td>Chat stream</td><td>Stand-in model server</td><td>Token, citation, chart and completion events received; chart block hidden</td></tr>
 <tr><td>Rate limit and keys</td><td>Eleven requests from one address; no server key and no request key</td><td>Ten accepted, the eleventh refused with status 429; a request with its own key was then accepted; without any key, status 503 with an explanatory message</td></tr>

@@ -3,11 +3,11 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SensorMind.Api.Auth;
 using SensorMind.Api.Chat;
-using SensorMind.Api.Endpoints;
 using SensorMind.Api.Logging;
 using SensorMind.Infrastructure;
 using SensorMind.Core.Auth;
@@ -19,17 +19,29 @@ var connectionString = builder.Configuration.GetConnectionString("SensorMind")
     ?? throw new InvalidOperationException("ConnectionStrings:SensorMind is not configured.");
 builder.Services.AddSensorMindInfrastructure(builder.Configuration, connectionString);
 
-builder.Services.ConfigureHttpJsonOptions(options =>
+// The same JSON rules for controller responses and for the SSE streams, which serialize by hand.
+static void ConfigureJson(JsonSerializerOptions options)
 {
-    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.KebabCaseLower));
-    options.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-});
+    options.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.KebabCaseLower));
+    options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+}
+
+builder.Services.ConfigureHttpJsonOptions(options => ConfigureJson(options.SerializerOptions));
+builder.Services.AddControllers(options =>
+    {
+        // Request bodies are JSON or raw text; reading them as a form would consume the body (and reject long ones).
+        foreach (var form in options.ValueProviderFactories.Where(f => f is FormValueProviderFactory or FormFileValueProviderFactory or JQueryFormValueProviderFactory).ToList())
+        {
+            options.ValueProviderFactories.Remove(form);
+        }
+    })
+    .AddJsonOptions(options => ConfigureJson(options.JsonSerializerOptions));
 
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
     policy.WithOrigins(allowedOrigins).AllowAnyHeader().WithMethods("GET", "POST", "PUT", "DELETE")));
 
-var signingKey = AuthEndpoints.SigningKey(builder.Configuration);
+var signingKey = AuthSetup.SigningKey(builder.Configuration);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -58,10 +70,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 builder.Services.AddAuthorizationBuilder()
     .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build())
-    .AddPolicy(AuthEndpoints.AdminPolicy, policy => policy.RequireRole("admin"));
+    .AddPolicy(AuthSetup.AdminPolicy, policy => policy.RequireRole("admin"));
 
 builder.Services.AddSingleton<ChatRateLimiter>();
-builder.Services.AddProblemDetails();
+// MVC adds a traceId to every problem response; the contract has never had one.
+builder.Services.AddProblemDetails(options =>
+    options.CustomizeProblemDetails = context => context.ProblemDetails.Extensions.Remove("traceId"));
 builder.Services.AddHealthChecks();
 
 builder.Services.AddEndpointsApiExplorer();
@@ -82,11 +96,11 @@ var app = builder.Build();
 
 app.Services.MigrateSensorMindDatabase();
 
-// First run: the sample plant becomes a demo tenant with one site.
+// First run: the sample plant becomes the first tenant with one site.
 app.Services.GetRequiredService<PlantCatalog>().SeedIfEmpty(
-    "Demo Tenant",
+    "Walnut",
     File.ReadAllText(Path.Combine(builder.Environment.ContentRootPath, builder.Configuration["Plant:ConfigPath"] ?? "data/plant.sample.json")));
-AuthEndpoints.SeedUsers(app.Services.GetRequiredService<IUserRepository>());
+AuthSetup.SeedUsers(app.Services.GetRequiredService<IUserRepository>());
 
 if (app.Environment.IsDevelopment())
 {
@@ -102,12 +116,7 @@ app.UseAuthorization();
 
 app.MapHealthChecks("/health").AllowAnonymous();
 
-var api = app.MapGroup("/api");
-api.MapAuthEndpoints();
-api.MapSiteEndpoints();
-api.MapPlantEndpoints();
-api.MapSensorEndpoints();
-api.MapChatEndpoints();
+app.MapControllers();
 
 app.Run();
 

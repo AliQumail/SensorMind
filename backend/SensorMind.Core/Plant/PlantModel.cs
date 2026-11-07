@@ -42,6 +42,7 @@ public sealed record Tag(
 
 public enum AssetType
 {
+    Refrigerator,
     Pump,
     Compressor,
     Motor,

@@ -1,9 +1,13 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Qdrant.Client;
+using SensorMind.Core.Auth;
+using SensorMind.Core.Sites;
 using SensorMind.Core.Sensors;
 using SensorMind.Infrastructure.Auth;
+using SensorMind.Infrastructure.Data;
 using SensorMind.Infrastructure.Manuals;
 using SensorMind.Infrastructure.Sensors;
 using SensorMind.Infrastructure.Sites;
@@ -17,8 +21,9 @@ public static class DependencyInjection
         IConfiguration configuration,
         string connectionString)
     {
-        services.AddSingleton(new SiteRepository(connectionString));
-        services.AddSingleton(new UserRepository(connectionString));
+        services.AddDbContextFactory<SensorMindDbContext>(options => options.UseNpgsql(connectionString));
+        services.AddSingleton<ITenantRepository, TenantRepository>();
+        services.AddSingleton<IUserRepository, UserRepository>();
         services.AddSingleton<PlantCatalog>();
         services.AddSingleton(TimeProvider.System);
 
@@ -54,5 +59,12 @@ public static class DependencyInjection
         services.AddHostedService<ManualIngestionService>();
 
         return services;
+    }
+
+    /// <summary>Creates or upgrades the database schema. Run once at startup, before anything reads the tables.</summary>
+    public static void MigrateSensorMindDatabase(this IServiceProvider services)
+    {
+        using var db = services.GetRequiredService<IDbContextFactory<SensorMindDbContext>>().CreateDbContext();
+        db.Database.Migrate();
     }
 }

@@ -8,7 +8,7 @@ using SensorMind.Api.Auth;
 using SensorMind.Api.Chat;
 using SensorMind.Api.Endpoints;
 using SensorMind.Infrastructure;
-using SensorMind.Infrastructure.Auth;
+using SensorMind.Core.Auth;
 using SensorMind.Infrastructure.Sites;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -64,11 +64,13 @@ builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
+app.Services.MigrateSensorMindDatabase();
+
 // First run: the sample plant becomes a demo tenant with one site.
 app.Services.GetRequiredService<PlantCatalog>().SeedIfEmpty(
     "Demo Tenant",
     File.ReadAllText(Path.Combine(builder.Environment.ContentRootPath, builder.Configuration["Plant:ConfigPath"] ?? "data/plant.sample.json")));
-AuthEndpoints.SeedUsers(app.Services.GetRequiredService<UserRepository>());
+AuthEndpoints.SeedUsers(app.Services.GetRequiredService<IUserRepository>());
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();

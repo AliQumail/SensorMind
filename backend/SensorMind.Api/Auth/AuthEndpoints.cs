@@ -3,7 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
-using SensorMind.Infrastructure.Auth;
+using SensorMind.Core.Auth;
 
 namespace SensorMind.Api.Auth;
 
@@ -14,14 +14,14 @@ internal static class AuthEndpoints
     public const string AdminPolicy = "admin";
 
     // The guest account is created on first run.
-    public static void SeedUsers(UserRepository users) =>
+    public static void SeedUsers(IUserRepository users) =>
         users.AddIfMissing(new User("guest", new PasswordHasher<User>().HashPassword(null!, "guest"), "guest"));
 
     public static RouteGroupBuilder MapAuthEndpoints(this RouteGroupBuilder api)
     {
         var group = api.MapGroup("/auth").WithTags("Auth");
 
-        group.MapPost("/login", (LoginRequest request, UserRepository users, IConfiguration config) =>
+        group.MapPost("/login", (LoginRequest request, IUserRepository users, IConfiguration config) =>
         {
             var user = request.Username is null ? null : users.Find(request.Username);
             if (user is null || request.Password is null ||

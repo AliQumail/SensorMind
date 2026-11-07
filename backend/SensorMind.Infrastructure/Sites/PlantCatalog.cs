@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using SensorMind.Core.Plant;
+using SensorMind.Core.Sites;
 
 namespace SensorMind.Infrastructure.Sites;
 
@@ -10,7 +11,7 @@ public sealed record SaveResult(IReadOnlyList<ConfigError> Errors, string? SiteI
 }
 
 /// <summary>
-/// Tenants and their sites, backed by PostgreSQL. A tenant is saved as one document,
+/// Tenants and their sites, stored through <see cref="ITenantRepository"/>. A tenant is saved as one document,
 /// <c>{ "tenant": "name", "sites": [ ... ] }</c>. Keeps a parsed <see cref="PlantIndex"/> per site in memory
 /// and raises <see cref="Changed"/> after every write so the simulator can follow.
 /// </summary>
@@ -24,11 +25,11 @@ public sealed class PlantCatalog
         CommentHandling = JsonCommentHandling.Skip,
     };
 
-    private readonly SiteRepository _repository;
+    private readonly ITenantRepository _repository;
     private readonly object _writeLock = new();
     private Dictionary<string, PlantIndex> _plants = new();
 
-    public PlantCatalog(SiteRepository repository)
+    public PlantCatalog(ITenantRepository repository)
     {
         _repository = repository;
         Reload();

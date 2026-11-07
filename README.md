@@ -104,8 +104,8 @@ See [`frontend/.env.example`](frontend/.env.example).
 ```
 backend/
   SensorMind.Api             Minimal API endpoints, SSE, CORS, hosting
-  SensorMind.Core            Domain model, config parser/validator, simulator, abstractions (no IO)
-  SensorMind.Infrastructure  PostgreSQL (tenants, sites, users), Qdrant vector store, in-memory store, live feed, simulation service
+  SensorMind.Core            Domain model, config parser/validator, simulator, repository interfaces (no IO)
+  SensorMind.Infrastructure  EF Core repositories and migrations (PostgreSQL: tenants, sites, users), Qdrant vector store, in-memory store, live feed, simulation service
 frontend/                    React 19 + TypeScript + Vite, @react-three/fiber, Recharts, Tailwind v4
 data/plant.sample.json       2 floors, 10 assets (Grundfos, Atlas Copco, ABB), 36 tags
 data/manuals/                Asset manual PDFs for RAG (add your own; none are shipped)

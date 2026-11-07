@@ -20,25 +20,29 @@ internal static class SiteEndpoints
 
         tenants.MapPost("/", async (HttpRequest request, PlantCatalog catalog) =>
             ToResult(catalog.SaveTenant(null, await ReadBodyAsync(request))))
-            .RequireAuthorization(AuthEndpoints.AdminPolicy);
+            .RequireAuthorization(AuthEndpoints.AdminPolicy)
+            .WithSummary("Create a tenant from a plant JSON body (admin role only).");
 
         // Replaces the tenant: sites missing from the document are deleted.
         tenants.MapPut("/{id}", async (string id, HttpRequest request, PlantCatalog catalog) =>
             catalog.Tenants.All(t => t.Id != id)
                 ? Results.NotFound()
                 : ToResult(catalog.SaveTenant(id, await ReadBodyAsync(request))))
-            .RequireAuthorization(AuthEndpoints.AdminPolicy);
+            .RequireAuthorization(AuthEndpoints.AdminPolicy)
+            .WithSummary("Replace a tenant from a plant JSON body (admin role only).");
 
         // tenantId: the tenant being edited, whose own site and tag ids are not conflicts.
         tenants.MapPost("/validate", async (string? tenantId, HttpRequest request, PlantCatalog catalog) =>
             TypedResults.Ok(new { errors = catalog.ValidateTenant(tenantId, await ReadBodyAsync(request)) }))
-            .RequireAuthorization(AuthEndpoints.AdminPolicy);
+            .RequireAuthorization(AuthEndpoints.AdminPolicy)
+            .WithSummary("Validate a tenant's plant JSON without saving (admin role only).");
 
         tenants.MapDelete("/{id}", (string id, PlantCatalog catalog) =>
         {
             catalog.DeleteTenant(id);
             return TypedResults.NoContent();
-        }).RequireAuthorization(AuthEndpoints.AdminPolicy);
+        }).RequireAuthorization(AuthEndpoints.AdminPolicy)
+            .WithSummary("Delete a tenant (admin role only).");
 
         var sites = api.MapGroup("/sites").WithTags("Sites");
 

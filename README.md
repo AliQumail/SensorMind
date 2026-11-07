@@ -72,6 +72,10 @@ Design choices and trade-offs are logged in [docs/decisions.md](docs/decisions.m
 | GET | `/api/chat/status` | `{ configured, limit, remaining }` for the caller's address |
 | GET | `/health` | Liveness |
 
+**Swagger UI** (Development only): http://localhost:5080/swagger, JSON at `/swagger/v1/swagger.json`. To call protected endpoints, run `POST /api/auth/login` with `{"username":"guest","password":"guest"}`, copy the `token`, click **Authorize** and paste it. The streaming endpoints (`/api/chat`, `/api/readings/stream`) are listed but Swagger UI cannot show them live.
+
+**Errors and request log:** an unhandled exception returns a generic `500` problem response (no details); the UI shows failures as toasts with fixed friendly messages. Every 4xx/5xx response and every successful login, tenant create/edit/delete and chat request is stored in the `logs` table (`id`, `timestamp_utc`, `type` SUCCESS/FAILURE, `status_code`, `method`, `path`, `logged_in_user`, `error_message`). Live feed, history and other successful reads are not logged, and bodies, passwords, tokens, keys and chat questions never are. View it with SQL, e.g. `select * from logs order by id desc limit 50;`.
+
 [`backend/SensorMind.Api/SensorMind.Api.http`](backend/SensorMind.Api/SensorMind.Api.http) has ready-to-run requests.
 
 ## Configuration

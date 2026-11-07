@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SensorMind.Core.Auth;
+using SensorMind.Core.Logs;
 using SensorMind.Core.Sites;
 
 namespace SensorMind.Infrastructure.Data;
@@ -40,5 +41,22 @@ internal sealed class SiteEntryConfiguration : IEntityTypeConfiguration<SiteEntr
         builder.Property(s => s.Name).HasColumnName("name");
         builder.Property(s => s.ConfigJson).HasColumnName("config_json");
         builder.HasOne<Tenant>().WithMany().HasForeignKey(s => s.TenantId).OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+internal sealed class LogEntryConfiguration : IEntityTypeConfiguration<LogEntry>
+{
+    public void Configure(EntityTypeBuilder<LogEntry> builder)
+    {
+        builder.ToTable("logs");
+        builder.HasKey(l => l.Id);
+        builder.Property(l => l.Id).HasColumnName("id").ValueGeneratedOnAdd();
+        builder.Property(l => l.TimestampUtc).HasColumnName("timestamp_utc");
+        builder.Property(l => l.Type).HasColumnName("type");
+        builder.Property(l => l.StatusCode).HasColumnName("status_code");
+        builder.Property(l => l.Method).HasColumnName("method");
+        builder.Property(l => l.Path).HasColumnName("path");
+        builder.Property(l => l.LoggedInUser).HasColumnName("logged_in_user");
+        builder.Property(l => l.ErrorMessage).HasColumnName("error_message");
     }
 }

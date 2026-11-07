@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Http.Features;
 using SensorMind.Api.Endpoints;
+using SensorMind.Api.Logging;
 using SensorMind.Core.Plant;
 using SensorMind.Core.Sensors;
 using SensorMind.Infrastructure.Manuals;
@@ -46,7 +47,8 @@ internal static partial class ChatEndpoints
         chat.MapGet("/status", (HttpContext context, OpenRouterClient client, ChatRateLimiter limiter) =>
             new { configured = client.HasConfiguredKey, limit = limiter.Limit, remaining = limiter.Remaining(Client(context)) });
 
-        chat.MapPost("/", AskAsync);
+        chat.MapPost("/", AskAsync)
+            .WithSummary("Ask a question; the answer streams as SSE events (Swagger UI shows it only after it finishes).");
         return api;
     }
 
@@ -151,6 +153,7 @@ internal static partial class ChatEndpoints
         catch (Exception ex)
         {
             logger.LogWarning("Chat request failed: {Message}", ex.Message);
+            context.Items[RequestLogMiddleware.ErrorKey] = FriendlyError(ex);
             await WriteAsync(response, "error", new { message = FriendlyError(ex) }, CancellationToken.None);
         }
 

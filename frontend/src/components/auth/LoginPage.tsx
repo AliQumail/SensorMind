@@ -20,18 +20,16 @@ export function LoginPage({ onLoggedIn }: { onLoggedIn: (user: LoginResult) => v
   const [showPassword, setShowPassword] = useState(false)
   const [remember, setRemember] = useState(false)
   const [showResetNote, setShowResetNote] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
   const signIn = async (name: string, pass: string) => {
     setBusy(true)
-    setError(null)
     try {
       const user = await login(name, pass)
       setToken(user.token, remember)
       onLoggedIn(user)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
+    } catch {
+      // The API client already showed a toast explaining what went wrong.
     } finally {
       setBusy(false)
     }
@@ -112,7 +110,6 @@ export function LoginPage({ onLoggedIn }: { onLoggedIn: (user: LoginResult) => v
             <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} className="size-4 accent-accent-hover" />
             Keep me signed in on this device
           </label>
-          {error && <p className="text-sm text-alarm-text">{error}</p>}
           <button
             type="submit"
             disabled={busy || !username || !password}

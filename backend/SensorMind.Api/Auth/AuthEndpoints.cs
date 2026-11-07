@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using SensorMind.Api.Logging;
 using SensorMind.Core.Auth;
 
 namespace SensorMind.Api.Auth;
@@ -21,12 +22,17 @@ internal static class AuthEndpoints
     {
         var group = api.MapGroup("/auth").WithTags("Auth");
 
-        group.MapPost("/login", (LoginRequest request, IUserRepository users, IConfiguration config) =>
+        group.MapPost("/login", (LoginRequest request, HttpContext context, IUserRepository users, IConfiguration config) =>
         {
+            // For the request log: the attempted username (never the password), since the caller is not signed in yet.
+            context.Items[RequestLogMiddleware.UserKey] = request.Username ?? string.Empty;
             var user = request.Username is null ? null : users.Find(request.Username);
             if (user is null || request.Password is null ||
                 new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, request.Password) == PasswordVerificationResult.Failed)
+            {
+                context.Items[RequestLogMiddleware.ErrorKey] = "Wrong username or password";
                 return Results.Unauthorized();
+            }
 
             return TypedResults.Ok(new { token = IssueToken(user, config), username = user.Username, role = user.Role });
         }).AllowAnonymous();

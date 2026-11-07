@@ -56,7 +56,6 @@ interface Props {
 export function TenantModal({ tenantId, onClose, onSaved, onDeleted }: Props) {
   const dialog = useRef<HTMLDialogElement>(null)
   const [initial, setInitial] = useState<TenantConfig | null>(tenantId ? null : EMPTY_TENANT)
-  const [failure, setFailure] = useState<string | null>(null)
 
   useEffect(() => {
     dialog.current?.showModal()
@@ -66,7 +65,7 @@ export function TenantModal({ tenantId, onClose, onSaved, onDeleted }: Props) {
     if (!tenantId) return
     fetchTenantConfig(tenantId)
       .then(setInitial)
-      .catch((error: unknown) => setFailure(error instanceof Error ? error.message : String(error)))
+      .catch(() => undefined) // the API client showed a toast
   }, [tenantId])
 
   const remove = async () => {
@@ -74,8 +73,8 @@ export function TenantModal({ tenantId, onClose, onSaved, onDeleted }: Props) {
     try {
       await deleteTenant(tenantId!)
       onDeleted()
-    } catch (error) {
-      setFailure(error instanceof Error ? error.message : String(error))
+    } catch {
+      // The API client showed a toast.
     }
   }
 
@@ -117,7 +116,6 @@ export function TenantModal({ tenantId, onClose, onSaved, onDeleted }: Props) {
             </button>
           </div>
         </div>
-        {failure && <p className="text-sm text-alarm-text">{failure}</p>}
         <div className="min-h-0 flex-1">
           {initial && (
             <ConfigEditor

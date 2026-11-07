@@ -21,6 +21,7 @@ import { SensorPanel } from './components/sensors/SensorPanel'
 import { AssetTree } from './components/tree/AssetTree'
 import { buildPlantIndex, type PlantIndex } from './lib/plantIndex'
 import { PlantProvider } from './state/PlantProvider'
+import { useToast } from './state/toastStore'
 import { readingsStore } from './state/readingsStore'
 
 type LoadState = { status: 'loading' } | { status: 'error'; message: string } | { status: 'ready'; index: PlantIndex; version: number }
@@ -36,6 +37,7 @@ function Workspace({ user, onLogout }: { user: { username: string; role: string 
   const [reloadKey, setReloadKey] = useState(0)
   const [state, setState] = useState<LoadState>({ status: 'loading' })
   const [treeOpen, setTreeOpen] = useState(true)
+  const toast = useToast()
 
   // Tenants and sites; reloaded after every tenant change.
   useEffect(() => {
@@ -95,7 +97,7 @@ function Workspace({ user, onLogout }: { user: { username: string; role: string 
           ) : (
             <div className="max-w-md space-y-2">
               <p className="font-semibold text-alarm-text">Could not load the plant configuration.</p>
-              <p className="text-sm text-text-muted">{state.message}. Is the API running?</p>
+              <p className="text-sm text-text-muted">{state.message}</p>
             </div>
           )}
         </main>
@@ -152,10 +154,12 @@ function Workspace({ user, onLogout }: { user: { username: string; role: string 
             if (!tenantModal.tenantId && firstSiteId) setSiteId(firstSiteId)
             setTenantModal(null)
             reload()
+            toast.success('Tenant saved.')
           }}
           onDeleted={() => {
             setTenantModal(null)
             reload()
+            toast.success('Tenant deleted.')
           }}
         />
       )}

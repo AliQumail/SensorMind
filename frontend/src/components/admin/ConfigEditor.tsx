@@ -23,7 +23,6 @@ export function ConfigEditor<T>({ initial, isFormReady, renderForm, validate, sa
   const [errors, setErrors] = useState<ValidationError[]>([])
   const [checking, setChecking] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [failure, setFailure] = useState<string | null>(null)
 
   const onConfigChange = (next: T) => {
     setConfig(next)
@@ -60,13 +59,12 @@ export function ConfigEditor<T>({ initial, isFormReady, renderForm, validate, sa
 
   const submit = async () => {
     setSaving(true)
-    setFailure(null)
     try {
       const outcome = await save(text)
       if (outcome.ok) onSaved(outcome)
       else setErrors(outcome.errors)
-    } catch (error) {
-      setFailure(error instanceof Error ? error.message : String(error))
+    } catch {
+      // The API client showed a toast.
     } finally {
       setSaving(false)
     }
@@ -109,7 +107,6 @@ export function ConfigEditor<T>({ initial, isFormReady, renderForm, validate, sa
       </div>
 
       {!formReady && <p className="text-xs text-text-muted">The UI view is unavailable until this JSON has the expected structure.</p>}
-      {failure && <p className="text-sm text-alarm-text">{failure}</p>}
 
       <div className="min-h-0 flex-1 overflow-y-auto">
         {showForm ? (

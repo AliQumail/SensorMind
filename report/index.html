@@ -7,16 +7,10 @@
 </head>
 <body>
 
-<p class="journal">INTERNATIONAL JOURNAL OF SCIENCE, TECHNOLOGY, EDUCATION AND MANAGEMENT RESEARCH (IJSTER), Volume, Issue, Month and Year</p>
-
 <h1 class="title">SensorMind: A Three-Dimensional Plant Monitor with Retrieval-Augmented Question Answering</h1>
-
-<p class="author">Ali QUMAIL<sup>1</sup></p>
-<p class="affil"><sup>1</sup>Organisation, Address, City, Postcode, Country<br>Tel: [Tel]; Email: [Email]</p>
 
 <div class="abstract">
 <p><b>Abstract:</b> SensorMind is a web application that presents the assets of an industrial plant as a navigable three-dimensional model and attaches live sensor values, alarm states and an assistant to it. The plant is described by a validated JSON document organised as site, floor, asset and tag, and is stored per tenant in PostgreSQL. A seeded stochastic simulator supplies the sensor data over Server-Sent Events. A retrieval-augmented assistant answers questions from manuals held in a vector store and from current readings, cites the manual pages it uses, and can draw trend graphs. This paper describes the design and implementation. The system was exercised on one sample plant. The assistant was tested only against a local stand-in for the language-model service, and no accuracy or performance measurements were taken.</p>
-<p><b>Keywords:</b> industrial monitoring; sensor data; retrieval-augmented generation; vector search; multi-tenant web application</p>
 </div>
 
 <h2>1. Introduction</h2>
@@ -33,7 +27,7 @@
 <p class="first">The system has three tiers (Figure 1). A single-page application written in React and TypeScript renders the interface. An ASP.NET Core 8 service holds the domain logic, persistence and HTTP endpoints; it is split into three projects, Core, Infrastructure and Api. Three external services are used: PostgreSQL for tenants, sites and accounts, Qdrant for manual embeddings, and OpenRouter for embeddings and chat completions.</p>
 
 
-<p>The Core project has no input or output dependencies. It contains the plant model, the configuration parser, the status rules and the simulator. Infrastructure implements storage and the clients of external services, and Api maps endpoints. Live readings reach the browser as Server-Sent Events (SSE) [4], because the traffic runs in one direction and the browser reconnects without extra code. History is fetched over REST.</p>
+<p>The Core project has no input or output dependencies. It contains the plant model, the configuration parser, the status rules and the simulator. Infrastructure implements storage and the clients of external services, and Api maps endpoints. Live readings reach the browser as Server-Sent Events (SSE), because the traffic runs in one direction and the browser reconnects without extra code. History is fetched over REST.</p>
 
 
 <figure class="wide f1">
@@ -104,11 +98,11 @@
 <p>The parser reads the JSON into nullable document classes and then builds immutable domain records. A missing field therefore becomes an error with a JSON path instead of an exception, and all errors are collected in one pass. Unknown properties are errors. Identifiers are lowercase kebab-case and unique, and the rotated footprint of each asset must lie inside its floor. The sample file describes one site with two floors, ten assets and 36 tags.</p>
 
 <h3>3.2 &ndash; Sensor Simulation</h3>
-<p class="first">Each tag is simulated as an Ornstein&ndash;Uhlenbeck process [1], a mean-reverting random walk, around the centre of its nominal band. The time constant of the reversion is 90 s, and the noise is scaled so that the stationary standard deviation is 0.18 of the half-width of the band. Three kinds of Poisson-distributed event are added per tag: slow drifts (0.4 per hour), whose triangular offset peaks at 1.2 half-widths and can therefore leave the nominal band; single-sample spikes (0.6 per hour); and short excursions beyond an alarm limit (one in twelve per hour). A sample is produced every two seconds, and a fixed seed makes a run repeatable. These rates are defaults of the simulation profile, chosen so that events are visible in a demonstration; they were not fitted to plant data.</p>
+<p class="first">Each tag is simulated as an Ornstein&ndash;Uhlenbeck process, a mean-reverting random walk, around the centre of its nominal band. The time constant of the reversion is 90 s, and the noise is scaled so that the stationary standard deviation is 0.18 of the half-width of the band. Three kinds of Poisson-distributed event are added per tag: slow drifts (0.4 per hour), whose triangular offset peaks at 1.2 half-widths and can therefore leave the nominal band; single-sample spikes (0.6 per hour); and short excursions beyond an alarm limit (one in twelve per hour). A sample is produced every two seconds, and a fixed seed makes a run repeatable. These rates are defaults of the simulation profile, chosen so that events are visible in a demonstration; they were not fitted to plant data.</p>
 <p>Twenty-four hours of history are generated at start-up so that charts are populated at once. Readings are kept in a fixed-size ring buffer per tag behind an interface, <i>ISensorStore</i>, which a historian could implement. History requests are reduced to the requested number of points by averaging buckets of equal sample count.</p>
 
 <h3>3.3 &ndash; Retrieval-Augmented Generation</h3>
-<p class="first">The pipeline follows the retrieve-then-generate pattern [2] (Figure 3). Ingestion runs at start-up. Each PDF in the manuals folder is hashed with SHA-256, and a file whose hash is already stored in Qdrant is skipped. Otherwise the text is extracted page by page with PdfPig and split into chunks of about 450 words (roughly 600 tokens) with an overlap of 60 words. A chunk never crosses a page boundary, so each has one page number. Chunks are embedded in batches of 32, by default with <i>text-embedding-3-small</i> (1536 dimensions), and stored with cosine distance. The payload holds the text, source file, page and document hash, and, when the file name contains a manufacturer or model that occurs in the plant, those two fields. A scanned document without a text layer is skipped with a warning; no character recognition is attempted.</p>
+<p class="first">The pipeline follows the retrieve-then-generate pattern (Figure 3). Ingestion runs at start-up. Each PDF in the manuals folder is hashed with SHA-256, and a file whose hash is already stored in Qdrant is skipped. Otherwise the text is extracted page by page with PdfPig and split into chunks of about 450 words (roughly 600 tokens) with an overlap of 60 words. A chunk never crosses a page boundary, so each has one page number. Chunks are embedded in batches of 32, by default with <i>text-embedding-3-small</i> (1536 dimensions), and stored with cosine distance. The payload holds the text, source file, page and document hash, and, when the file name contains a manufacturer or model that occurs in the plant, those two fields. A scanned document without a text layer is skipped with a warning; no character recognition is attempted.</p>
 
 <figure class="wide">
 <svg viewBox="0 0 760 262" xmlns="http://www.w3.org/2000/svg" font-family="Times New Roman, Times, serif" font-size="11">
@@ -151,7 +145,7 @@
 <p>The answer is streamed as SSE events. When the stream ends, the service reads the cited numbers and sends the matching file and page as citations. If the text contains a fenced block of the form <i>{&ldquo;tagId&rdquo;: &hellip;, &ldquo;minutes&rdquo;: &hellip;}</i>, the service checks the tag identifier against the plant, reads the sensor store for the window (5 to 240 minutes, at most 120 points) and sends the series as a chart event. The interface hides the block and draws the graph. If the vector store or the embedding call fails, the answer is produced from sensor data alone.</p>
 
 <h3>3.4 &ndash; Multi-Tenancy and Authentication</h3>
-<p class="first">A tenant is stored as one document, <i>{tenant, sites[]}</i>, with its sites in a PostgreSQL table reached through Entity Framework Core repositories whose interfaces are defined in Core, and a save replaces the tenant and its sites in one transaction. Site and tag identifiers must be unique across tenants, because the sensor store is keyed by tag identifier. Accounts are rows of a users table that hold a salted hash from the ASP.NET Core password hasher. A successful login returns a JSON Web Token [3] valid for eight hours. The browser keeps it in local storage if the user asks to stay signed in, and in session storage otherwise. Endpoints require a valid token by default, and tenant management also requires the admin role. The only account created automatically is a guest account without that role. A browser <i>EventSource</i> cannot set headers, so the live stream accepts the token as a query parameter. Accounts are not bound to a tenant: any signed-in user can read every tenant.</p>
+<p class="first">A tenant is stored as one document, <i>{tenant, sites[]}</i>, with its sites in a PostgreSQL table reached through Entity Framework Core repositories whose interfaces are defined in Core, and a save replaces the tenant and its sites in one transaction. Site and tag identifiers must be unique across tenants, because the sensor store is keyed by tag identifier. Accounts are rows of a users table that hold a salted hash from the ASP.NET Core password hasher. A successful login returns a JSON Web Token valid for eight hours. The browser keeps it in local storage if the user asks to stay signed in, and in session storage otherwise. Endpoints require a valid token by default, and tenant management also requires the admin role. The only account created automatically is a guest account without that role. A browser <i>EventSource</i> cannot set headers, so the live stream accepts the token as a query parameter. Accounts are not bound to a tenant: any signed-in user can read every tenant.</p>
 
 <h2>4. Implementation</h2>
 <p class="first">The backend uses minimal APIs grouped by concern. The OpenRouter key and address, the model names, the Qdrant address and key, the manuals folder and the chat limit are configuration values, and none is stored in the repository. The chat endpoint accepts ten questions per client address and UTC day with the server key; the count is kept in memory and is lost at restart. A request that carries its own key in a header is exempt, and that key is used for that request only. With neither a server key nor a request key, the endpoint answers 503 with an explanatory message, which the interface displays.</p>
@@ -198,14 +192,6 @@
 
 <h2>7. Conclusion</h2>
 <p class="first">SensorMind couples a validated plant model, a simulated sensor stream and a retrieval-augmented assistant in one multi-tenant web application. Storage, the model client and the vector store sit behind small interfaces, and the application runs without a key, a vector store or manuals. As a prototype it is complete, but the assistant is untested against a real model and the data are simulated, so its usefulness on a real plant remains open.</p>
-
-<h2 class="refs">References</h2>
-<ol class="refs">
-<li>G. E. Uhlenbeck and L. S. Ornstein, &ldquo;On the theory of the Brownian motion,&rdquo; <i>Physical Review</i>, vol. 36, no. 5, pp. 823&ndash;841, 1930.</li>
-<li>P. Lewis <i>et al.</i>, &ldquo;Retrieval-augmented generation for knowledge-intensive NLP tasks,&rdquo; in <i>Advances in Neural Information Processing Systems</i>, vol. 33, 2020, pp. 9459&ndash;9474.</li>
-<li>M. Jones, J. Bradley and N. Sakimura, &ldquo;JSON Web Token (JWT),&rdquo; RFC 7519, IETF, 2015.</li>
-<li>WHATWG, &ldquo;HTML Living Standard: Server-sent events,&rdquo; https://html.spec.whatwg.org/multipage/server-sent-events.html.</li>
-</ol>
 
 </body>
 </html>

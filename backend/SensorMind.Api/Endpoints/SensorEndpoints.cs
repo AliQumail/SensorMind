@@ -18,7 +18,8 @@ internal static class SensorEndpoints
     {
         var readings = api.MapGroup("/readings").WithTags("Readings");
         readings.MapGet("/latest", (ISensorStore store) => TypedResults.Ok(store.GetLatest().Select(ReadingDto.From)));
-        readings.MapGet("/stream", StreamAsync);
+        readings.MapGet("/stream", StreamAsync)
+            .WithSummary("Live readings as SSE (never ends; Swagger UI cannot show it live). Token may be sent as ?access_token=.");
 
         api.MapGet("/tags/{tagId}/history", GetHistory).WithTags("Readings");
 

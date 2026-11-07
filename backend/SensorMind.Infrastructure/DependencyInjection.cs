@@ -4,10 +4,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Qdrant.Client;
 using SensorMind.Core.Auth;
+using SensorMind.Core.Logs;
 using SensorMind.Core.Sites;
 using SensorMind.Core.Sensors;
 using SensorMind.Infrastructure.Auth;
 using SensorMind.Infrastructure.Data;
+using SensorMind.Infrastructure.Logs;
 using SensorMind.Infrastructure.Manuals;
 using SensorMind.Infrastructure.Sensors;
 using SensorMind.Infrastructure.Sites;
@@ -24,6 +26,7 @@ public static class DependencyInjection
         services.AddDbContextFactory<SensorMindDbContext>(options => options.UseNpgsql(connectionString));
         services.AddSingleton<ITenantRepository, TenantRepository>();
         services.AddSingleton<IUserRepository, UserRepository>();
+        services.AddSingleton<ILogRepository, LogRepository>();
         services.AddSingleton<PlantCatalog>();
         services.AddSingleton(TimeProvider.System);
 

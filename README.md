@@ -111,7 +111,7 @@ backend/
   SensorMind.Core            Domain model, config parser/validator, simulator, repository interfaces (no IO)
   SensorMind.Infrastructure  EF Core repositories and migrations (PostgreSQL: tenants, sites, users), Qdrant vector store, in-memory store, live feed, simulation service
 frontend/                    React 19 + TypeScript + Vite, @react-three/fiber, Recharts, Tailwind v4
-data/plant.sample.json       Walnut Berlin Mitte: 2 floors, 20 refrigerators, 60 tags
+data/plant.sample.json       Walnut Berlin Central: 2 floors, 20 refrigerators, 60 tags
 data/manuals/                Asset manual PDFs for RAG (one fictional demo manual is included)
 docs/                        Decisions, config reference, original spec
 ```

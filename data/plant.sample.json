@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "site": {
-    "id": "site-walnut-berlin-mitte",
-    "name": "Walnut Berlin Mitte",
+    "id": "site-walnut-berlin-central",
+    "name": "Walnut Berlin Central",
     "location": "Berlin, Germany (fictional)",
     "floors": [
       {

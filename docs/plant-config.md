@@ -6,14 +6,14 @@ A plant is one JSON file: **Site → Floors → Assets → Tags**. The API loads
 
 | Level | Meaning in SensorMind | Example |
 |-------|-----------------------|---------|
-| **Site** | The plant as a whole. | Walnut Berlin Mitte |
+| **Site** | The plant as a whole. | Walnut Berlin Central |
 | **Floor** | One level of the building, drawn in its own 3D view. | Sales Floor |
 | **Asset** | A machine you monitor, such as a refrigerated cabinet. It is the unit you select in the tree or the 3D view, and the one you ask the assistant about. | Chilled Cabinet R-01 |
 | **Tag** | One sensor signal on an asset, with a unit and nominal and alarm limits. | Cabinet Temperature (°C) |
 
 ```mermaid
 flowchart TD
-  S["Site: Walnut Berlin Mitte"] --> F["Floor: Sales Floor"]
+  S["Site: Walnut Berlin Central"] --> F["Floor: Sales Floor"]
   F --> A["Asset: Chilled Cabinet R-01"]
   A --> T["Tag: Cabinet Temperature, °C, nominal 1 to 4, alarm above 7"]
 ```
@@ -37,7 +37,7 @@ curl -X POST http://localhost:5080/api/plant/validate \
 {
   "schemaVersion": 1,                       // optional, defaults to 1
   "site": {
-    "id": "site-walnut-berlin-mitte", "name": "Walnut Berlin Mitte", "location": "optional",
+    "id": "site-walnut-berlin-central", "name": "Walnut Berlin Central", "location": "optional",
     "floors": [{
       "id": "floor-sales", "name": "Sales Floor", "level": 0,
       "size": { "width": 14, "depth": 12 },  // metres

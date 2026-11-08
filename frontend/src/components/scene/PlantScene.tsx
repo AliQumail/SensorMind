@@ -109,8 +109,8 @@ function CameraRig({ floor }: { floor: Floor }) {
     const aspect = width > 0 && height > 0 ? width / height : 1.5
     const halfFov = (camera.fov * Math.PI) / 360
 
-    // Distance at which the floor's width fits horizontally and its (foreshortened) depth vertically.
-    const fitWidth = floor.size.width / 2 / (Math.tan(halfFov) * aspect)
+    // Distance at which the floor's width (near edge included) fits horizontally and its (foreshortened) depth vertically.
+    const fitWidth = floor.size.width / 2 / (Math.tan(halfFov) * aspect) + (floor.size.depth / 2) * Math.cos(VIEW_ANGLE)
     const fitDepth = ((floor.size.depth / 2) * Math.sin(VIEW_ANGLE) + 1.5) / Math.tan(halfFov)
     const distance = Math.max(fitWidth, fitDepth) * 1.08
 

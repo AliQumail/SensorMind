@@ -3,6 +3,7 @@ import { useFrame, type ThreeEvent } from '@react-three/fiber'
 import { Edges, useCursor } from '@react-three/drei'
 import { Color, type MeshStandardMaterial } from 'three'
 import type { Asset, TagStatus } from '../../api/types'
+import { isFlagged, prefersReducedMotion, pulseHz, useReducedMotion } from '../../theme/pulse'
 import { getThemeColors, type ThemeColors } from '../../theme/themeColors'
 
 interface Props {
@@ -14,13 +15,15 @@ interface Props {
   onHover: (id: string | null) => void
 }
 
-const WARNING_INTENSITY = 0.35
-const ALARM_INTENSITY = [0.2, 0.7] as const
+// Emissive intensity range per status; the alarm swings wider. Reduced motion holds a fixed bright tint.
+const INTENSITY = { warning: [0.05, 0.5], alarm: [0.1, 1.3] } as const
+const STILL_INTENSITY = 0.8
 
 export function AssetModel({ asset, status, selected, hovered, onSelect, onHover }: Props) {
   const colors = getThemeColors()
   const material = useRef<MeshStandardMaterial>(null)
   useCursor(hovered)
+  const reduced = useReducedMotion()
 
   const { position, size, rotationDeg, shape } = asset.placement
   const baseColor = useMemo(() => new Color(bodyColor(asset.type, colors)), [asset.type, colors])
@@ -29,15 +32,13 @@ export function AssetModel({ asset, status, selected, hovered, onSelect, onHover
     [status, colors],
   )
 
-  // Alarm pulses; warning holds a steady amber glow; normal has no tint.
+  // Only warning/alarm meshes animate: a sine pulse of the emissive tint, written straight to the material.
   useFrame(({ clock }) => {
-    if (!material.current) return
-    material.current.emissiveIntensity =
-      status === 'alarm'
-        ? ALARM_INTENSITY[0] + (ALARM_INTENSITY[1] - ALARM_INTENSITY[0]) * (0.5 + 0.5 * Math.sin(clock.elapsedTime * 4))
-        : status === 'warning'
-          ? WARNING_INTENSITY
-          : 0
+    if (!material.current || !isFlagged(status)) return
+    const [low, high] = INTENSITY[status]
+    material.current.emissiveIntensity = prefersReducedMotion()
+      ? STILL_INTENSITY
+      : low + (high - low) * (0.5 - 0.5 * Math.cos(2 * Math.PI * pulseHz(status) * clock.elapsedTime))
   })
 
   const handleClick = (event: ThreeEvent<MouseEvent>) => {
@@ -72,11 +73,11 @@ export function AssetModel({ asset, status, selected, hovered, onSelect, onHover
       >
         <Geometry shape={shape} size={size} bodyHeight={bodyHeight} />
         <meshStandardMaterial ref={material} color={baseColor} emissive={emissive} roughness={0.65} metalness={0.15} />
-        {(selected || hovered) && (
+        {(selected || hovered || (reduced && isFlagged(status))) && (
           <Edges
             threshold={20}
             lineWidth={selected ? 2.5 : 1.5}
-            color={selected ? colors.accent : colors.borderStrong}
+            color={selected ? colors.accent : hovered ? colors.borderStrong : emissive}
           />
         )}
       </mesh>

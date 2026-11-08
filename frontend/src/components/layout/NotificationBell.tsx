@@ -1,5 +1,5 @@
 import { useContext, useEffect, useRef, useState } from 'react'
-import { STATUS_LABEL } from '../../lib/status'
+import { PULSE, STATUS_LABEL } from '../../lib/status'
 import { PlantContext } from '../../state/plantContext'
 import { useNotifications, type Notification } from '../../state/useNotifications'
 
@@ -71,6 +71,7 @@ function Bell() {
   const { items, unread, markAllRead, clear } = useNotifications()
   const [open, setOpen] = useState(false)
   const [now, setNow] = useState(() => Date.now())
+  const unreadSeverity = items.some((n) => !n.read && n.severity === 'alarm') ? 'alarm' : 'warning'
   const root = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -108,7 +109,9 @@ function Bell() {
         aria-expanded={open}
         aria-haspopup="dialog"
         title="Notifications"
-        className="relative grid size-8 place-items-center rounded-lg text-text-muted hover:bg-surface-hover hover:text-text"
+        className={`relative grid size-8 place-items-center rounded-lg hover:bg-surface-hover ${
+          unread > 0 ? `${PULSE[unreadSeverity]} ${TEXT[unreadSeverity]}` : 'text-text-muted hover:text-text'
+        }`}
       >
         <svg viewBox="0 0 16 16" className="size-4" aria-hidden>
           <path
@@ -123,7 +126,9 @@ function Bell() {
         {unread > 0 && (
           <span
             aria-hidden
-            className="absolute -top-1 -right-1 grid min-w-4 place-items-center rounded-full bg-alarm px-1 text-[0.65rem] leading-4 font-semibold text-white ring-2 ring-surface-raised"
+            className={`absolute -top-1 -right-1 grid min-w-4 place-items-center rounded-full px-1 text-[0.65rem] leading-4 font-semibold ring-2 ring-surface-raised ${PULSE[unreadSeverity]} ${
+              unreadSeverity === 'alarm' ? 'bg-alarm text-white' : 'bg-warning text-text'
+            }`}
           >
             {unread > 9 ? '9+' : unread}
           </span>

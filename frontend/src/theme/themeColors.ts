@@ -13,6 +13,8 @@ const TOKENS = {
   normal: '--status-normal',
   warning: '--status-warning',
   alarm: '--status-alarm',
+  pulseWarning: '--pulse-warning',
+  pulseAlarm: '--pulse-alarm',
   floor: '--scene-floor',
   grid: '--scene-grid',
   light: '--scene-light',

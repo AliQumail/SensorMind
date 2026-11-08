@@ -32,6 +32,10 @@
   --status-warning-text: #8a5a12;
   --status-alarm-text: #9a3a2f;
 
+  /* Status pulse periods in seconds: warning 0.8 Hz, alarm 1.6 Hz. Read by the CSS below and by the 3D scene. */
+  --pulse-warning: 1.25;
+  --pulse-alarm: 0.625;
+
   /* 3D scene */
   --scene-floor: #ede3d5;
   --scene-grid: #dccdb9;
@@ -99,6 +103,47 @@
   from {
     opacity: 0;
     transform: translateY(-6px);
+  }
+}
+
+/* Status pulse: smooth glow, never above 2 Hz. Reduced motion keeps a static ring instead of animating. */
+.pulse-warning {
+  --pulse-color: var(--status-warning);
+  --pulse-period: calc(var(--pulse-warning) * 1s);
+  --pulse-reach: 6px;
+  --pulse-strength: 75%;
+}
+
+.pulse-alarm {
+  --pulse-color: var(--status-alarm);
+  --pulse-period: calc(var(--pulse-alarm) * 1s);
+  --pulse-reach: 14px;
+  --pulse-strength: 100%;
+}
+
+.pulse-warning,
+.pulse-alarm {
+  animation: pulse-glow var(--pulse-period) ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--pulse-color) 0%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 var(--pulse-reach) calc(var(--pulse-reach) / 2.5) color-mix(in srgb, var(--pulse-color) var(--pulse-strength), transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-warning,
+  .pulse-alarm {
+    animation: none;
+    box-shadow:
+      0 0 0 2px var(--surface-raised),
+      0 0 0 4px var(--pulse-color);
   }
 }
 

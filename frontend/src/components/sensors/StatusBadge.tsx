@@ -1,5 +1,5 @@
 import type { TagStatus } from '../../api/types'
-import { STATUS_LABEL } from '../../lib/status'
+import { PULSE, STATUS_LABEL } from '../../lib/status'
 
 const DOT: Record<TagStatus, string> = {
   normal: 'bg-normal',
@@ -19,7 +19,7 @@ export function StatusDot({ status, className = '' }: { status: TagStatus | unde
     <span
       title={status ? STATUS_LABEL[status] : 'No data'}
       className={`inline-block size-2 shrink-0 rounded-full ${status ? DOT[status] : 'bg-border-strong'} ${
-        status === 'alarm' ? 'animate-pulse' : ''
+        status ? PULSE[status] : ''
       } ${className}`}
     />
   )

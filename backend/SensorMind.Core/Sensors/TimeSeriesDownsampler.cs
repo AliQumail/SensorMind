@@ -2,11 +2,7 @@ namespace SensorMind.Core.Sensors;
 
 public static class TimeSeriesDownsampler
 {
-    /// <summary>
-    /// Reduces a series to at most <paramref name="maxPoints"/> by averaging equal-count buckets.
-    /// Each bucket is stamped with its middle sample's timestamp. Cheap, stable, and good enough for
-    /// sparklines and trend charts; swap for LTTB if peak preservation becomes important.
-    /// </summary>
+    // Averages equal-count buckets stamped with the middle timestamp; swap for LTTB if peaks matter.
     public static IReadOnlyList<DataPoint> Average(IReadOnlyList<DataPoint> points, int maxPoints)
     {
         ArgumentNullException.ThrowIfNull(points);

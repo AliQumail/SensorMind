@@ -3,11 +3,7 @@ using SensorMind.Core.Sensors;
 
 namespace SensorMind.Infrastructure.Sensors;
 
-/// <summary>
-/// Rolling window of readings per tag, kept in fixed-size ring buffers. Memory is bounded by
-/// <c>capacityPerTag * tags * 16 bytes</c> (about 1.5 MB per tag for 24h at 2s).
-/// Assumes timestamps are appended in non-decreasing order per tag, which the simulator guarantees.
-/// </summary>
+// Ring buffer per tag (about 1.5 MB per tag for 24h at 2s); per-tag timestamps must be non-decreasing.
 public sealed class InMemorySensorStore : ISensorStore
 {
     private readonly ConcurrentDictionary<string, Series> _series = new(StringComparer.Ordinal);
@@ -106,7 +102,7 @@ public sealed class InMemorySensorStore : ISensorStore
             }
         }
 
-        /// <summary>Logical index of the first sample with timestamp &gt;= <paramref name="ticks"/>.</summary>
+        // First sample with timestamp >= ticks.
         private int LowerBound(long ticks)
         {
             int lo = 0, hi = _count;

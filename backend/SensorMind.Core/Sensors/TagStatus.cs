@@ -2,7 +2,7 @@ using SensorMind.Core.Plant;
 
 namespace SensorMind.Core.Sensors;
 
-/// <summary>Ordered by severity so the worst status of a set is simply the maximum.</summary>
+// Ordered by severity so the worst status of a set is the maximum.
 public enum TagStatus
 {
     Normal = 0,
@@ -12,7 +12,7 @@ public enum TagStatus
 
 public static class TagStatusEvaluator
 {
-    /// <summary>Alarm beyond an alarm limit (inclusive), warning outside the nominal band, otherwise normal.</summary>
+    // Alarm beyond an alarm limit (inclusive), warning outside the nominal band, otherwise normal.
     public static TagStatus Evaluate(this Tag tag, double value)
     {
         ArgumentNullException.ThrowIfNull(tag);

@@ -8,10 +8,7 @@ using SensorMind.Infrastructure.Sites;
 
 namespace SensorMind.Infrastructure.Sensors;
 
-/// <summary>
-/// Drives one simulator per site: backfills history for new tags, then samples every interval and publishes live.
-/// Follows the catalog, so sites added, edited or deleted at runtime start, restart or stop simulating.
-/// </summary>
+// One simulator per site: backfills new tags, samples each interval, follows catalog changes.
 internal sealed partial class SensorSimulationService(
     PlantCatalog catalog,
     ISensorStore store,
@@ -24,10 +21,7 @@ internal sealed partial class SensorSimulationService(
     private readonly Dictionary<string, (IReadOnlyList<Tag> Tags, SensorSimulator Simulator)> _sites = [];
     private int _seed;
 
-    /// <summary>
-    /// Backfills before returning. Hosted services start before the web server listens, so the API
-    /// never serves a half-filled history window.
-    /// </summary>
+    // Backfills before returning: hosted services start before the server listens, so no half-filled history.
     public override Task StartAsync(CancellationToken cancellationToken)
     {
         _seed = options.Value.Seed ?? Random.Shared.Next();
@@ -86,7 +80,7 @@ internal sealed partial class SensorSimulationService(
         }
     }
 
-    /// <summary>Backfills only tags the store has never seen, so edits don't duplicate history of existing tags.</summary>
+    // Only never-seen tags, so edits don't duplicate history.
     private int Backfill(SensorSimulator simulator, IReadOnlyList<Tag> tags)
     {
         var settings = options.Value;

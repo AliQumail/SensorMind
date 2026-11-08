@@ -3,13 +3,11 @@ using System.Text.Json.Serialization;
 
 namespace SensorMind.Core.Plant;
 
-// Raw shape of the plant JSON file. Everything is nullable so that missing fields surface as
-// readable validation errors (with a JSON path) instead of deserialization exceptions.
-// Only PlantConfigParser should use these types.
+// Raw file shape, all nullable so missing fields become validation errors with a path; parser use only.
 
 internal abstract class DocumentBase
 {
-    /// <summary>Captures misspelled or unsupported properties so they can be reported instead of silently ignored.</summary>
+    // Catches misspelled or unsupported properties so they are reported, not ignored.
     [JsonExtensionData]
     public Dictionary<string, JsonElement>? UnknownProperties { get; set; }
 }

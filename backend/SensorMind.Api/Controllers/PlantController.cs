@@ -9,8 +9,7 @@ public sealed class PlantController : ControllerBase
 {
     private const int MaxConfigBytes = 1024 * 1024;
 
-    // Validates a candidate plant file without applying it. Importing is file-based (see docs/decisions.md),
-    // because the demo is public and one visitor must not be able to replace the plant for everyone.
+    // Validates a plant file without applying it; import is file-based (docs/decisions.md) as the demo is public.
     [HttpPost("validate")]
     public async Task<IActionResult> Validate(CancellationToken cancellationToken)
     {

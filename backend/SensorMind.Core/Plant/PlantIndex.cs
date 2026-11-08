@@ -1,9 +1,8 @@
 namespace SensorMind.Core.Plant;
 
-/// <summary>A tag together with the asset and floor it belongs to.</summary>
 public sealed record TagLocation(Tag Tag, Asset Asset, Floor Floor);
 
-/// <summary>Read-only lookups over a validated plant. Ids are unique per kind, which the parser guarantees.</summary>
+// Ids are unique per kind, which the parser guarantees.
 public sealed class PlantIndex
 {
     private readonly Dictionary<string, Asset> _assets = new(StringComparer.Ordinal);

@@ -2,14 +2,10 @@ using SensorMind.Core.Plant;
 
 namespace SensorMind.Core.Sensors.Simulation;
 
-/// <summary>
-/// Generates readings for a set of tags. Fully deterministic for a given seed, tag set and sequence
-/// of timestamps. Each tag gets its own RNG derived from the seed and its id, so adding or removing
-/// a tag does not change the values of the others.
-/// </summary>
+// Deterministic per seed; each tag has its own RNG so adding or removing a tag leaves others unchanged.
 public sealed class SensorSimulator
 {
-    /// <summary>Gaps larger than this (e.g. a suspended process) are not simulated as one huge step.</summary>
+    // Longer gaps (e.g. a suspended process) are not simulated as one huge step.
     private static readonly TimeSpan MaxStep = TimeSpan.FromMinutes(1);
 
     private readonly TagSimulator[] _tags;
@@ -43,7 +39,7 @@ public sealed class SensorSimulator
         return new ReadingBatch(timestamp, readings);
     }
 
-    /// <summary>FNV-1a. string.GetHashCode is randomised per process, which would break determinism.</summary>
+    // FNV-1a: string.GetHashCode is randomised per process, which would break determinism.
     private static int StableHash(string value)
     {
         unchecked

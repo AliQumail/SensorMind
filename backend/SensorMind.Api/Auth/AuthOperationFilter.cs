@@ -4,7 +4,7 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace SensorMind.Api.Auth;
 
-/// <summary>Marks every endpoint with the Bearer requirement (the lock icon) except those that allow anonymous access.</summary>
+// Bearer requirement (lock icon) on every endpoint except anonymous ones.
 public sealed class AuthOperationFilter : IOperationFilter
 {
     public void Apply(OpenApiOperation operation, OperationFilterContext context)

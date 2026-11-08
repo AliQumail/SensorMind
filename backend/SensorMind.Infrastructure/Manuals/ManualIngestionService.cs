@@ -11,15 +11,11 @@ public sealed class ManualsOptions
 {
     public const string SectionName = "Manuals";
 
-    /// <summary>Folder with the manual PDFs, relative to the API content root.</summary>
+    // Relative to the API content root.
     public string Path { get; set; } = "data/manuals";
 }
 
-/// <summary>
-/// Ingests the PDFs in the manuals folder at startup: text per page, chunks, embeddings, then Qdrant.
-/// A document whose hash is already stored is skipped. Problems (no folder, no key, Qdrant down) are logged
-/// and skipped, never thrown, so the API still starts.
-/// </summary>
+// Skips documents whose hash is stored; problems are logged and skipped so the API still starts.
 public sealed class ManualIngestionService(
     PlantCatalog catalog,
     ManualVectorStore store,
@@ -111,7 +107,7 @@ public sealed class ManualIngestionService(
         logger.LogInformation("Ingested {File}: {Count} chunks.", name, chunks.Count);
     }
 
-    /// <summary>Manufacturer (and model, when present) of the plant's assets that the file name mentions.</summary>
+    // Manufacturer (and model) of plant assets that the file name mentions.
     private (string? Manufacturer, string? Model) InferAsset(string fileName)
     {
         var key = Normalize(Path.GetFileNameWithoutExtension(fileName));

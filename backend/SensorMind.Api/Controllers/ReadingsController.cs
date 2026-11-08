@@ -24,11 +24,7 @@ public sealed class ReadingsController(
     [HttpGet("readings/latest")]
     public IActionResult Latest() => Ok(store.GetLatest().Select(ReadingDto.From));
 
-    /// <summary>
-    /// Server-Sent Events: an initial "readings" event with the latest value of every tag, then one per
-    /// sampling tick. SSE over WebSockets because traffic is one-way and it survives proxies and
-    /// reconnects (EventSource retries automatically) with no extra client code.
-    /// </summary>
+    // SSE rather than WebSockets: one-way traffic, survives proxies, EventSource reconnects itself.
     [HttpGet("readings/stream")]
     [EndpointSummary("Live readings as SSE (never ends; Swagger UI cannot show it live). Token may be sent as ?access_token=.")]
     public async Task Stream()

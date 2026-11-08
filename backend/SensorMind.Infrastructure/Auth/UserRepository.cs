@@ -4,7 +4,6 @@ using SensorMind.Infrastructure.Data;
 
 namespace SensorMind.Infrastructure.Auth;
 
-/// <summary>EF Core persistence for login users.</summary>
 internal sealed class UserRepository(IDbContextFactory<SensorMindDbContext> factory) : IUserRepository
 {
     public User? Find(string username)

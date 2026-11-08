@@ -2,11 +2,11 @@ namespace SensorMind.Infrastructure.Manuals;
 
 public static class ManualChunker
 {
-    // About 450 words is roughly 600 tokens, inside the 500 to 800 target. Overlap keeps a sentence that straddles a cut findable.
+    // About 450 words is roughly 600 tokens (target 500 to 800); overlap keeps a sentence that straddles a cut findable.
     private const int WordsPerChunk = 450;
     private const int OverlapWords = 60;
 
-    /// <summary>Splits one page into overlapping chunks. Chunks never span pages, so every chunk has one page number.</summary>
+    // Chunks never span pages, so each has one page number.
     public static IEnumerable<string> Split(string pageText)
     {
         var words = pageText.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);

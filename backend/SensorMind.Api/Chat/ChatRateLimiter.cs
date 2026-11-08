@@ -1,6 +1,6 @@
 namespace SensorMind.Api.Chat;
 
-/// <summary>Free questions per client address per UTC day, counted in memory (resets on restart).</summary>
+// Free questions per client address per UTC day, in memory (resets on restart).
 public sealed class ChatRateLimiter(TimeProvider time, IConfiguration configuration)
 {
     private readonly object _lock = new();

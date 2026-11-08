@@ -4,7 +4,6 @@ using SensorMind.Infrastructure.Data;
 
 namespace SensorMind.Infrastructure.Sites;
 
-/// <summary>EF Core persistence for tenants and the plant config JSON of each site.</summary>
 internal sealed class TenantRepository(IDbContextFactory<SensorMindDbContext> factory) : ITenantRepository
 {
     public IReadOnlyList<Tenant> GetTenants()

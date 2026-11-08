@@ -155,7 +155,7 @@ public sealed partial class ChatController(
         return new EmptyResult();
     }
 
-    /// <summary>Manual excerpts for the question. If the manuals are unavailable the answer continues with sensor data only.</summary>
+    // If the manuals are unavailable the answer continues with sensor data only.
     private static async Task<IReadOnlyList<ManualMatch>> Retrieve(
         string question,
         Asset? selected,

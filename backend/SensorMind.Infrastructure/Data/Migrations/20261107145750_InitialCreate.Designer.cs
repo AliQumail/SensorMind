@@ -14,7 +14,6 @@ namespace SensorMind.Infrastructure.Data.Migrations
     [Migration("20261107145750_InitialCreate")]
     partial class InitialCreate
     {
-        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

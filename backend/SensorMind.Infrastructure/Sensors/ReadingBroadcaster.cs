@@ -5,10 +5,7 @@ using SensorMind.Core.Sensors;
 
 namespace SensorMind.Infrastructure.Sensors;
 
-/// <summary>
-/// In-process pub/sub for reading batches. Each subscriber gets its own small bounded channel that
-/// drops the oldest batch when full, so one slow client can never stall the simulator or others.
-/// </summary>
+// Per-subscriber bounded channel dropping the oldest batch, so a slow client never stalls others.
 public sealed class ReadingBroadcaster : IReadingFeed
 {
     private const int SubscriberBufferSize = 16;

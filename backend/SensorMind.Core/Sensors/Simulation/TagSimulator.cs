@@ -2,12 +2,7 @@ using SensorMind.Core.Plant;
 
 namespace SensorMind.Core.Sensors.Simulation;
 
-/// <summary>
-/// Simulates one tag as an Ornstein-Uhlenbeck process (a mean-reverting random walk) around the
-/// centre of its nominal band, overlaid with three kinds of Poisson-distributed events:
-/// slow drifts (triangular offset over tens of minutes), single-sample spikes, and short alarm
-/// excursions past an alarm limit.
-/// </summary>
+// Ornstein-Uhlenbeck walk around the band centre plus Poisson drifts, spikes and short alarm excursions.
 internal sealed class TagSimulator
 {
     private readonly SimulationProfile _profile;
@@ -96,7 +91,7 @@ internal sealed class TagSimulator
         }
     }
 
-    /// <summary>Triangular profile: ramps to the peak at half time, then back to zero.</summary>
+    // Ramps to the peak at half time, then back to zero.
     private double AdvanceDrift(double dtSeconds)
     {
         if (_driftDuration <= 0)
@@ -133,7 +128,7 @@ internal sealed class TagSimulator
 
     private int Sign() => _random.Next(2) == 0 ? -1 : 1;
 
-    /// <summary>Standard normal sample via Box-Muller.</summary>
+    // Standard normal via Box-Muller.
     private double NextGaussian()
     {
         var u1 = 1 - _random.NextDouble();

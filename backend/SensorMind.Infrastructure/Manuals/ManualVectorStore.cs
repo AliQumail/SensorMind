@@ -9,7 +9,6 @@ public sealed record ManualChunk(string Text, string SourceFile, int Page, strin
 
 public sealed record ManualMatch(ManualChunk Chunk, float Score);
 
-/// <summary>Manual chunks and their embeddings in a Qdrant collection.</summary>
 public sealed class ManualVectorStore(QdrantClient client, IOptions<QdrantOptions> options)
 {
     private readonly QdrantOptions _options = options.Value;

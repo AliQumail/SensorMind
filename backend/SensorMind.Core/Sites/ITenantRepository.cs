@@ -6,7 +6,7 @@ public interface ITenantRepository
 
     IReadOnlyList<SiteEntry> GetSites();
 
-    /// <summary>Creates or replaces a tenant and all its sites in one transaction, so a failure leaves nothing half saved.</summary>
+    // One transaction, so a failure leaves nothing half saved.
     void SaveTenant(Tenant tenant, IReadOnlyList<SiteEntry> sites);
 
     void DeleteTenant(string id);

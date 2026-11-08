@@ -6,7 +6,7 @@ using SensorMind.Infrastructure.Manuals;
 
 namespace SensorMind.Api.Chat;
 
-/// <summary>Builds the system prompt: rules, the tag list, live readings with a short trend for the relevant assets, and manual excerpts.</summary>
+// Rules, tag list, live readings with a short trend for relevant assets, and manual excerpts.
 internal static class ChatPrompt
 {
     private static readonly TimeSpan TrendWindow = TimeSpan.FromMinutes(15);
@@ -78,7 +78,7 @@ internal static class ChatPrompt
         return text.ToString();
     }
 
-    /// <summary>The selected asset and any asset named in the question; with neither, whatever is in warning or alarm.</summary>
+    // Selected asset and any asset named in the question; with neither, assets in warning or alarm.
     private static List<(Asset Asset, Floor Floor)> RelevantAsset(
         List<(Asset Asset, Floor Floor)> all, ISensorStore store, string question, Asset? selected)
     {

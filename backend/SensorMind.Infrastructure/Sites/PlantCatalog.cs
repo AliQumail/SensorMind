@@ -10,11 +10,7 @@ public sealed record SaveResult(IReadOnlyList<ConfigError> Errors, string? SiteI
     public bool IsValid => Errors.Count == 0;
 }
 
-/// <summary>
-/// Tenants and their sites, stored through <see cref="ITenantRepository"/>. A tenant is saved as one document,
-/// <c>{ "tenant": "name", "sites": [ ... ] }</c>. Keeps a parsed <see cref="PlantIndex"/> per site in memory
-/// and raises <see cref="Changed"/> after every write so the simulator can follow.
-/// </summary>
+// Saves a tenant as one document { "tenant": ..., "sites": [...] }; raises Changed after writes.
 public sealed class PlantCatalog
 {
     private const int MaxTenantNameLength = 100;
@@ -59,7 +55,7 @@ public sealed class PlantCatalog
         return false;
     }
 
-    /// <summary>The tenant's document, or null if there is no such tenant.</summary>
+    // Null if there is no such tenant.
     public string? GetTenantConfig(string id)
     {
         var tenant = _repository.GetTenants().FirstOrDefault(t => t.Id == id);
@@ -77,7 +73,7 @@ public sealed class PlantCatalog
         return new JsonObject { ["tenant"] = tenant.Name, ["sites"] = sites }.ToJsonString();
     }
 
-    /// <summary>Every problem with a tenant document, without saving anything.</summary>
+    // Validates without saving.
     public IReadOnlyList<ConfigError> ValidateTenant(string? tenantId, string json)
     {
         var errors = ParseTenant(json, out _, out var plants);
@@ -85,7 +81,7 @@ public sealed class PlantCatalog
         return errors;
     }
 
-    /// <summary>Creates a tenant (<paramref name="tenantId"/> null) or replaces an existing one and all its sites.</summary>
+    // tenantId null creates; otherwise replaces the tenant and all its sites.
     public SaveResult SaveTenant(string? tenantId, string json)
     {
         var errors = ParseTenant(json, out var name, out var plants);
@@ -122,7 +118,7 @@ public sealed class PlantCatalog
         Changed?.Invoke();
     }
 
-    /// <summary>Creates a first tenant and site from a plant file, only when the database is empty.</summary>
+    // Only when the database is empty.
     public void SeedIfEmpty(string tenantName, string plantJson)
     {
         if (_repository.GetTenants().Count > 0)
@@ -213,10 +209,7 @@ public sealed class PlantCatalog
         return errors;
     }
 
-    /// <summary>
-    /// Site and tag ids that clash with another tenant's sites or with another site in the same document.
-    /// The sensor store is keyed by tag id, so tag ids must be unique across all sites.
-    /// </summary>
+    // Id clashes with other tenants or within the document; tag ids are unique across sites (store key).
     private List<ConfigError> FindConflicts(string? tenantId, List<ParsedSite> plants)
     {
         var own = _repository.GetSites().Where(s => s.TenantId == tenantId).Select(s => s.Id).ToHashSet();
@@ -250,7 +243,7 @@ public sealed class PlantCatalog
             var result = PlantConfigParser.Parse(site.ConfigJson);
             if (result.Plant is null)
             {
-                // A row saved before the Floor > Asset model (floors[].groups[].equipment[]) lands here after an upgrade.
+                // Rows saved before the Floor > Asset model land here after an upgrade.
                 throw new InvalidOperationException(
                     $"Stored site '{site.Id}' does not match the current plant format: {string.Join("; ", result.Errors.Take(3))}. " +
                     "If it was saved with groups and equipment, run the one-off conversion in docs/plant-config.md.");

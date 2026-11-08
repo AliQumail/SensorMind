@@ -1,23 +1,23 @@
 namespace SensorMind.Core.Sensors.Simulation;
 
-/// <summary>Tunable behaviour of simulated tags. Event rates are per tag.</summary>
+// Event rates are per tag.
 public sealed record SimulationProfile
 {
-    /// <summary>Default profile: mostly calm, with drifts and spikes visible within minutes and a few alarms per hour plant-wide.</summary>
+    // Mostly calm; drifts and spikes within minutes, a few alarms per hour plant-wide.
     public static SimulationProfile Default { get; } = new();
 
-    /// <summary>Random walk only, no drift/spike/alarm events. Useful for tests and baselines.</summary>
+    // Random walk only, no events; for tests and baselines.
     public static SimulationProfile Calm { get; } = new() { DriftsPerHour = 0, SpikesPerHour = 0, AlarmEventsPerHour = 0 };
 
-    /// <summary>Time constant pulling the value back to the band centre.</summary>
+    // Time constant pulling the value back to the band centre.
     public double MeanReversionSeconds { get; init; } = 90;
 
-    /// <summary>Stationary standard deviation of the walk as a fraction of the nominal half band.</summary>
+    // Stationary standard deviation of the walk as a fraction of the nominal half band.
     public double NoiseFraction { get; init; } = 0.18;
 
     public double DriftsPerHour { get; init; } = 0.4;
 
-    /// <summary>Peak drift offset as a fraction of the half band. Values above 1 leave the nominal band (warning).</summary>
+    // Peak drift as a fraction of the half band; above 1 leaves the nominal band (warning).
     public double MaxDriftFraction { get; init; } = 1.2;
 
     public double SpikesPerHour { get; init; } = 0.6;

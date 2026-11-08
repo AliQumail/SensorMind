@@ -64,7 +64,7 @@ public static class DependencyInjection
         return services;
     }
 
-    /// <summary>Creates or upgrades the database schema. Run once at startup, before anything reads the tables.</summary>
+    // Run once at startup, before anything reads the tables.
     public static void MigrateSensorMindDatabase(this IServiceProvider services)
     {
         using var db = services.GetRequiredService<IDbContextFactory<SensorMindDbContext>>().CreateDbContext();

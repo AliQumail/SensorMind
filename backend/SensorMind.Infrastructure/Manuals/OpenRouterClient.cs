@@ -12,7 +12,7 @@ public sealed class OpenRouterOptions
 
     public string BaseUrl { get; set; } = "https://openrouter.ai/api/v1";
 
-    /// <summary>Server-side key, from configuration or environment only. Callers may pass their own per request instead.</summary>
+    // Server-side key from configuration or environment; callers may pass their own per request.
     public string? ApiKey { get; set; }
 
     public string EmbeddingModel { get; set; } = "openai/text-embedding-3-small";
@@ -22,7 +22,6 @@ public sealed class OpenRouterOptions
 
 public sealed record ChatMessage(string Role, string Content);
 
-/// <summary>Embeddings and streaming chat completions over OpenRouter's OpenAI-compatible API.</summary>
 public sealed class OpenRouterClient(HttpClient http, IOptions<OpenRouterOptions> options)
 {
     private readonly OpenRouterOptions _options = options.Value;
@@ -41,7 +40,6 @@ public sealed class OpenRouterClient(HttpClient http, IOptions<OpenRouterOptions
             .Select(item => item.GetProperty("embedding").EnumerateArray().Select(v => v.GetSingle()).ToArray())];
     }
 
-    /// <summary>Yields the answer text as it arrives.</summary>
     public async IAsyncEnumerable<string> StreamChatAsync(
         IReadOnlyList<ChatMessage> messages,
         string? apiKey = null,

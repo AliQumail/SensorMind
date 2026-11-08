@@ -3,17 +3,13 @@ using SensorMind.Core.Logs;
 
 namespace SensorMind.Api.Logging;
 
-/// <summary>
-/// Turns unhandled exceptions into a generic 500 problem response, and writes a row to the <c>logs</c> table for
-/// every 4xx/5xx response and for successful writes (login, tenant create/edit/delete, chat).
-/// Nothing from the request body, query string or headers is stored.
-/// </summary>
+// Maps unhandled exceptions to a generic 500 and logs failures and writes; never stores request content.
 internal sealed class RequestLogMiddleware(RequestDelegate next, ILogger<RequestLogMiddleware> logger)
 {
     private const int MaxErrorLength = 500;
     private const int MaxFieldLength = 200;
 
-    /// <summary>Endpoints set these in <see cref="HttpContext.Items"/>: the username when the caller is not signed in yet, and a short failure reason.</summary>
+    // Endpoints set these in HttpContext.Items: the username when not signed in yet, and a failure reason.
     public const string UserKey = "log.user";
 
     public const string ErrorKey = "log.error";
@@ -65,7 +61,7 @@ internal sealed class RequestLogMiddleware(RequestDelegate next, ILogger<Request
         var reason = context.Items[ErrorKey] as string;
         var failed = status >= 400 || reason is not null;
 
-        // Successful reads (sensor feed, history, health, plant, the log list) and CORS preflights are not logged; successful writes are, except validate.
+        // Successful reads, preflights and validate calls are not logged; other successful writes are.
         if (!failed && (HttpMethods.IsGet(request.Method) || HttpMethods.IsHead(request.Method) || HttpMethods.IsOptions(request.Method) ||
             request.Path.Value!.EndsWith("/validate", StringComparison.OrdinalIgnoreCase)))
         {

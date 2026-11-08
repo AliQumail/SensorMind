@@ -18,7 +18,7 @@ public sealed class AuthController(IUserRepository users, IConfiguration config)
     [AllowAnonymous]
     public IActionResult Login(LoginRequest request)
     {
-        // For the request log: the attempted username (never the password), since the caller is not signed in yet.
+        // Request log gets the attempted username (never the password), as the caller is not signed in.
         HttpContext.Items[RequestLogMiddleware.UserKey] = request.Username ?? string.Empty;
         var user = request.Username is null ? null : users.Find(request.Username);
         if (user is null || request.Password is null ||

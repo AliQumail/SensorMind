@@ -15,7 +15,6 @@ namespace SensorMind.Infrastructure.Data.Migrations
     [Migration("20261107164643_AddLogs")]
     partial class AddLogs
     {
-        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618

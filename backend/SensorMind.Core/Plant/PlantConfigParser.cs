@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace SensorMind.Core.Plant;
 
-/// <summary>A problem found in a plant config, located by a JSONPath such as <c>$.site.floors[0].assets[1]</c>.</summary>
+// Located by JSONPath, e.g. $.site.floors[0].assets[1].
 public sealed record ConfigError(string Path, string Message)
 {
     public override string ToString() => $"{Path}: {Message}";
@@ -18,7 +18,7 @@ public sealed class PlantConfigResult
         Errors = errors;
     }
 
-    /// <summary>The validated plant, or null when <see cref="Errors"/> is non-empty.</summary>
+    // Null when Errors is non-empty.
     public PlantModel? Plant { get; }
 
     public IReadOnlyList<ConfigError> Errors { get; }
@@ -30,10 +30,7 @@ public sealed class PlantConfigResult
     internal static PlantConfigResult Failure(IReadOnlyList<ConfigError> errors) => new(null, errors);
 }
 
-/// <summary>
-/// Parses and validates a plant config JSON document in a single pass. All errors are collected
-/// (not just the first) so a user fixing a file sees everything that is wrong at once.
-/// </summary>
+// Single pass; collects all errors so a user fixing a file sees everything at once.
 public static partial class PlantConfigParser
 {
     public const int CurrentSchemaVersion = 1;
@@ -446,7 +443,7 @@ public static partial class PlantConfigParser
         };
     }
 
-    /// <summary>Kebab-case names for enum values, matching how the API serializes them ("heat-exchanger").</summary>
+    // Kebab-case enum names, matching the API serialization ("heat-exchanger").
     private static class EnumNames<TEnum>
         where TEnum : struct, Enum
     {

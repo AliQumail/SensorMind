@@ -23,17 +23,30 @@ export function SensorPanel() {
   return <Overview title={floor.name} subtitle="Select an asset in the tree or 3D view" assets={floorAssets(floor)} />
 }
 
-function AssetDetail({ asset, context }: { asset: Asset; context: string }) {
+/** The section's header bar content: the selected scope's name, plus the asset's status badge. */
+export function SensorPanelTitle() {
+  const { index, selection, activeFloorId } = usePlant()
   const readings = useReadings()
 
+  const entry = selection?.kind === 'asset' ? index.assetById.get(selection.id) : undefined
+  if (entry) {
+    return (
+      <>
+        <span className="truncate">{entry.asset.name}</span>
+        <StatusBadge status={assetStatus(entry.asset, readings)} />
+      </>
+    )
+  }
+  if (selection?.kind === 'site') return <span className="truncate">{index.plant.site.name}</span>
+  const floor = index.floorById.get(selection?.kind === 'floor' ? selection.id : activeFloorId) ?? index.floors[0]
+  return <span className="truncate">{floor.name}</span>
+}
+
+function AssetDetail({ asset, context }: { asset: Asset; context: string }) {
   return (
     <section aria-label={`Sensors for ${asset.name}`} className="flex h-full min-h-0 flex-col">
       <header className="border-b border-border px-4 pt-4 pb-3">
         <p className="text-xs font-medium tracking-wide text-text-muted uppercase">{context}</p>
-        <div className="mt-1 flex items-start justify-between gap-3">
-          <h2 className="text-lg leading-tight font-semibold">{asset.name}</h2>
-          <StatusBadge status={assetStatus(asset, readings)} />
-        </div>
         <p className="mt-1 text-sm text-text-muted">
           {formatAssetType(asset.type)} · {asset.manufacturer} {asset.model}
         </p>
@@ -65,8 +78,7 @@ function Overview({ title, subtitle, assets }: { title: string; subtitle: string
 
   return (
     <section aria-label={`Overview of ${title}`} className="flex h-full min-h-0 flex-col">
-      <header className="border-b border-border px-4 pt-4 pb-3">
-        <h2 className="text-lg font-semibold">{title}</h2>
+      <header className="border-b border-border px-4 py-3">
         <p className="text-sm text-text-muted">{subtitle}</p>
         <dl className="mt-3 grid grid-cols-3 gap-2 text-center">
           <Stat label="Assets" value={rows.length} />

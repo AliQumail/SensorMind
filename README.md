@@ -6,6 +6,10 @@ Built with .NET 8, React 19, Three.js and Qdrant. MIT licensed.
 
 ![SensorMind: asset tree, 3D floor view with a selected refrigerator, and its live sensor tags](docs/images/phase1-equipment.png)
 
+![An asset in alarm: the unit, the floor and the site turn red; warnings turn amber.](docs/images/alarm-state.png)
+
+*An asset in alarm: the unit, the floor and the site turn red; warnings turn amber.*
+
 ## Status
 
 | Phase | Scope | State |
@@ -55,7 +59,7 @@ flowchart LR
 - **RAG:** at startup the PDFs in `data/manuals` are split per page into overlapping chunks (about 450 words), embedded through OpenRouter and stored in Qdrant with source file, page, document hash and, when the file name names an asset of the plant, manufacturer and model. A document whose hash is already stored is skipped. A question is embedded, the top 5 chunks are retrieved (filtered by the selected asset's manufacturer, widened if nothing matches), and the prompt adds live readings with a 15-minute trend for the relevant assets. The answer streams over SSE, cites excerpts by number, and may ask for a trend graph with a fenced `chart` block that the API validates against the plant's tags. Users get 10 free questions per address per day, or unlimited use with their own key in the `X-OpenRouter-Key` header (not logged or stored).
 - **Storage:** a fixed-size ring buffer per tag behind `ISensorStore`, so a historian or TSDB can replace it later.
 - **Live data:** Server-Sent Events. Each client gets a bounded buffer, so a slow consumer never blocks the others.
-- **UI:** design tokens are CSS variables shared by Tailwind and the Three.js scene, and are WCAG AA checked. Status shows as an emissive tint on assets and as labelled badges in the panels. Warnings pulse slowly in amber and alarms pulse faster in red (3D view, tree, notification bell), with a static ring when reduced motion is on.
+- **UI:** design tokens are CSS variables shared by Tailwind and the Three.js scene, and are WCAG AA checked. Status shows as an emissive tint on assets and as labelled badges in the panels. Warnings pulse slowly in amber and alarms pulse faster in red (3D view, tree, notification bell), with a static ring when reduced motion is on. The right column's sensor and chat sections collapse from their headers and resize with a draggable splitter (mouse or arrow keys, double-click to reset); the layout is remembered per browser.
 
 Design choices and trade-offs are logged in [docs/decisions.md](docs/decisions.md).
 
@@ -74,7 +78,7 @@ Design choices and trade-offs are logged in [docs/decisions.md](docs/decisions.m
 
 **Swagger UI** (Development only): http://localhost:5080/swagger, JSON at `/swagger/v1/swagger.json`. To call protected endpoints, run `POST /api/auth/login` with `{"username":"guest","password":"guest"}`, copy the `token`, click **Authorize** and paste it. The streaming endpoints (`/api/chat`, `/api/readings/stream`) are listed but Swagger UI cannot show them live.
 
-**Errors and request log:** an unhandled exception returns a generic `500` problem response (no details); the UI shows failures as toasts with fixed friendly messages. Every 4xx/5xx response and every successful login, tenant create/edit/delete and chat request is stored in the `logs` table (`id`, `timestamp_utc`, `type` SUCCESS/FAILURE, `status_code`, `method`, `path`, `logged_in_user`, `error_message`). Live feed, history and other successful reads are not logged, and bodies, passwords, tokens, keys and chat questions never are. View it with SQL, e.g. `select * from logs order by id desc limit 50;`.
+**Errors and request log:** an unhandled exception returns a generic `500` problem response (no details); the UI shows failures as toasts with fixed friendly messages. Every 4xx/5xx response and every successful login, tenant create/edit/delete and chat request is stored in the `logs` table (`id`, `timestamp_utc`, `type` SUCCESS/FAILURE, `status_code`, `method`, `path`, `logged_in_user`, `error_message`). Live feed, history and other successful reads are not logged, and bodies, passwords, tokens, keys and chat questions never are. View it at **/logs** in the UI (no sign-in) or with `GET /api/logs` (public, read-only; filters `type`, `statusCode`, `statusClass`, `method`, `path`, `user`, `message`, `from`, `to`, `page`, `pageSize`, newest first). It shows usernames, paths and messages to anyone who can reach the API.
 
 [`backend/SensorMind.Api/SensorMind.Api.http`](backend/SensorMind.Api/SensorMind.Api.http) has ready-to-run requests.
 

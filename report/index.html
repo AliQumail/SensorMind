@@ -75,8 +75,8 @@
 <p>Warnings pulse slowly in amber and alarms pulse faster in red in the 3D view, the tree, the floor tabs and the notification bell. A still image cannot show the pulse, so the figures show the colours only. The bell (Figure 3b) lists each new warning and alarm with its floor and value. The list exists only in the browser and is empty after a reload.</p>
 
 <figure class="wide main">
-<img src="figures/main.png" alt="Main view">
-<figcaption><b>Figure 2.</b> Main view with Chilled Cabinet R-06 selected. It shows a warning (0.78 &deg;C, below the 1 &deg;C limit) that the simulator produced on its own; nothing was forced. An amber dot marks the cabinet. The floor and the site are red because another cabinet is in alarm; that cabinet is tinted red in the 3D view.</figcaption>
+<img src="figures/alarm.png" alt="Main view with an alarm">
+<figcaption><b>Figure 2.</b> Main view with Freezer Cabinet F-04 selected, in alarm. This is a screenshot of the running application; the simulator produced the alarm on its own, nothing was forced. The unit is tinted red in the 3D view, and the status shows in the tree, the floor tab and the sensor panel. A still image cannot show the pulse.</figcaption>
 </figure>
 
 <figure class="wide pair">
@@ -173,10 +173,7 @@
 <p class="first">SensorMind brings sensor values, alarms, a 3D floor view and a manual-aware assistant into one platform, shown here with a fictional supermarket. The prototype runs end to end on simulated data. Whether it helps in a real store is not yet known, because it has not been tested on real equipment or with a real AI model.</p>
 
 <h2>Appendix A. AI-Assisted Development Workflow</h2>
-<p class="first">I built SensorMind with Claude Code, Anthropic&rsquo;s coding assistant, in my editor. The AI wrote most of the code and the first drafts of the documents. The direction, the decisions and the checking were mine.</p>
-<p><b>What I did.</b> I defined the product and its scope: a 3D floor view, live status and alerts, and an assistant that answers from live readings and manuals. I wrote the kickoff specification, which fixes the technology (for example .NET 8, React, Three.js, Qdrant and OpenRouter) and splits the work into four phases. I made the later design decisions and recorded them in <i>docs/decisions.md</i>: Entity Framework Core with the repository pattern for all database access, API controllers instead of minimal APIs, no group level, &ldquo;asset&rdquo; instead of &ldquo;equipment&rdquo;, the tenant as the top level, the columns of the request-log table, the fictional Walnut supermarket in place of the earlier sample plant, and no automated tests. I set the working rules in <i>CLAUDE.md</i> (short answers, no changes until I say start, minimal code) and saved a preference that the AI never commits or pushes; I make every commit myself. I kept a task list and gave each task to its own agent, running tasks in parallel only when they did not touch the same files.</p>
-<p><b>How the tool was used.</b> A main session received my instructions, planned, and handed each task to a separate subagent, a custom &ldquo;task-executor&rdquo; agent (Figure A1). Each subagent changed the code or documents for one task, tested the result on throwaway databases and ports, never on my own database or running application, and reported what it changed, what it checked and what it could not check. A PostgreSQL MCP server (Model Context Protocol, a standard way to give the AI tool extra abilities) was part of this setup: it let the tool inspect the project&rsquo;s database, its tables and rows, directly while diagnosing problems, instead of through manual Docker commands.</p>
-<p><b>Review and limits.</b> I reviewed every result in the running application and corrected it with screenshots and instructions: the layout that did not fit the screen, the width of the sign-in panel, the illustration (extended, not stretched), the loader, the notification bell, the L-shaped layout, the blinking of warnings and alarms, and the wording of the report and sign-in page. I directed the report itself: its structure, plain wording, what to remove, and the &ldquo;simulated and fictional&rdquo; framing. To limit risk, I fixed the product name, took a backup before a database reset, and approved that reset explicitly after the tool&rsquo;s permission check held it back. I held back features that were not worth the effort, such as an icon bank. AI output can be wrong, so I relied on running the application and on my own review. There are no automated tests, and I did not measure effort, time or defect rates, so I make no claim about them.</p>
+<p class="first">Claude Code assisted with the code and the documents, and each task was handed to a separate task-executor subagent; a large part of the working time went into writing prompts, reviewing code and verifying results in the running application.</p>
 
 <figure class="wide fa">
 <svg viewBox="0 0 760 206" xmlns="http://www.w3.org/2000/svg" font-family="Times New Roman, Times, serif" font-size="12.5">
@@ -197,7 +194,7 @@
   <path d="M439 36V18H69V40" fill="none" stroke-dasharray="5 3" marker-end="url(#d)"/>
 </g>
 <g fill="#111" text-anchor="middle">
-  <text x="69" y="78" font-weight="bold">Me</text><text x="69" y="96">decisions, rules,</text><text x="69" y="111">review</text>
+  <text x="69" y="78" font-weight="bold">Developer</text><text x="69" y="96">decisions, rules,</text><text x="69" y="111">review</text>
   <text x="249" y="78" font-weight="bold">Main session</text><text x="249" y="96">plans, delegates</text>
   <text x="439" y="53">task-executor</text><text x="439" y="87">task-executor</text><text x="439" y="121">task-executor</text>
   <text x="660" y="78" font-weight="bold">Repository</text><text x="660" y="96">and throwaway test</text><text x="660" y="111">databases and ports</text>
@@ -206,7 +203,7 @@
   <text x="439" y="148" font-size="11">one per task, in parallel</text>
 </g>
 </svg>
-<figcaption><b>Figure A1.</b> The workflow. I give instructions and decide; each task goes to its own subagent, which works on the repository and on throwaway test instances and reports back to me. The PostgreSQL MCP server lets the main session inspect the project database.</figcaption>
+<figcaption><b>Figure A1.</b> Development workflow: the developer gives instructions to a main session, which hands each task to its own task-executor subagent; the subagents work on the repository and on throwaway test instances and report back for review. The PostgreSQL MCP server (Model Context Protocol, a standard way to give the tool extra abilities) lets the main session inspect the project database.</figcaption>
 </figure>
 
 </body>

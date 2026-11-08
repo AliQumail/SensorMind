@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { login, setToken, type LoginResult } from '../../api/client'
 import plantIllustration from '../../assets/plant-illustration.svg'
+import { logsHref } from '../../lib/logsRoute'
 
 const inputClass =
   'w-full rounded-lg border border-border-strong bg-surface-raised px-3.5 py-3 text-sm text-text focus:border-accent focus:outline-none'
@@ -140,6 +141,9 @@ export function LoginPage({ onLoggedIn }: { onLoggedIn: (user: LoginResult) => v
           </span>
         </button>
 
+        <a href={logsHref} className="self-center text-xs text-text-muted hover:text-text hover:underline">
+          Logs
+        </a>
       </section>
     </div>
   )

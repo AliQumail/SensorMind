@@ -97,3 +97,21 @@ export interface ValidationError {
   path: string
   message: string
 }
+
+export interface LogRow {
+  id: number
+  timestampUtc: string
+  type: 'SUCCESS' | 'FAILURE'
+  statusCode: number
+  method: string
+  path: string
+  loggedInUser: string
+  errorMessage?: string
+}
+
+export interface LogsPage {
+  items: LogRow[]
+  total: number
+  page: number
+  pageSize: number
+}

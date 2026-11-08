@@ -65,8 +65,9 @@ internal sealed class RequestLogMiddleware(RequestDelegate next, ILogger<Request
         var reason = context.Items[ErrorKey] as string;
         var failed = status >= 400 || reason is not null;
 
-        // Successful reads (sensor feed, history, health, plant) are not logged; successful writes are, except validate.
-        if (!failed && (HttpMethods.IsGet(request.Method) || request.Path.Value!.EndsWith("/validate", StringComparison.OrdinalIgnoreCase)))
+        // Successful reads (sensor feed, history, health, plant, the log list) and CORS preflights are not logged; successful writes are, except validate.
+        if (!failed && (HttpMethods.IsGet(request.Method) || HttpMethods.IsHead(request.Method) || HttpMethods.IsOptions(request.Method) ||
+            request.Path.Value!.EndsWith("/validate", StringComparison.OrdinalIgnoreCase)))
         {
             return null;
         }

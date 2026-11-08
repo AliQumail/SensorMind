@@ -79,15 +79,6 @@ export function ChatPanel() {
 
   return (
     <section aria-label="Assistant" className="flex h-full min-h-0 flex-col">
-      <header className="flex items-center justify-between border-b border-border px-4 py-3">
-        <h2 className="font-semibold">Ask SensorMind</h2>
-        {remaining !== null && !ownKey.trim() && (
-          <span className="rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent-text">
-            {remaining} of {status?.limit ?? 10} free left today
-          </span>
-        )}
-      </header>
-
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-3 text-sm">
         {messages.length === 0 && (
           <div className="space-y-2 pt-6 text-center text-text-muted">
@@ -134,11 +125,20 @@ export function ChatPanel() {
       </div>
 
       <form className="border-t border-border p-3" onSubmit={submit}>
-        {selected && (
-          <p className="mb-2 text-xs text-text-muted">
-            Context: <span className="font-medium text-text">{selected.name}</span>
+        <div className="mb-2 flex items-center justify-between gap-2 text-xs text-text-muted">
+          <p>
+            {selected && (
+              <>
+                Context: <span className="font-medium text-text">{selected.name}</span>
+              </>
+            )}
           </p>
-        )}
+          {remaining !== null && !ownKey.trim() && (
+            <span className="shrink-0 rounded-full bg-accent-soft px-2 py-0.5 font-medium text-accent-text">
+              {remaining} of {status?.limit ?? 10} free left today
+            </span>
+          )}
+        </div>
         {unconfigured && <p className="mb-2 text-xs text-alarm-text">Chat isn&apos;t configured yet. Use your own OpenRouter key below.</p>}
         <div className="flex gap-2">
           <label htmlFor="chat-input" className="sr-only">

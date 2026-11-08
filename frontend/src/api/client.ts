@@ -1,6 +1,6 @@
 import type { TenantConfig } from '../components/admin/siteConfig'
 import { toast } from '../state/toastStore'
-import type { Plant, SiteSummary, TagHistory, Tenant, ValidationError } from './types'
+import type { LogsPage, Plant, SiteSummary, TagHistory, Tenant, ValidationError } from './types'
 
 /** Empty in dev (Vite proxies /api); the deployed API origin in production. */
 export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
@@ -63,10 +63,12 @@ interface RequestOptions {
   headers?: Record<string, string>
   /** The caller shows the failure itself (inline), so no toast. */
   quiet?: boolean
+  /** Public endpoint: send no token, so a stale one can never sign the user out. */
+  anonymous?: boolean
 }
 
-async function request(method: string, path: string, { body, signal, headers, quiet }: RequestOptions = {}): Promise<Response> {
-  const token = getToken()
+async function request(method: string, path: string, { body, signal, headers, quiet, anonymous }: RequestOptions = {}): Promise<Response> {
+  const token = anonymous ? null : getToken()
   let response: Response
   try {
     response = await fetch(apiUrl(path), {
@@ -118,6 +120,9 @@ export async function login(username: string, password: string): Promise<LoginRe
 }
 
 export const fetchMe = () => json<{ username: string; role: string }>('GET', '/api/auth/me', { quiet: true })
+
+export const fetchLogs = (params: URLSearchParams, signal?: AbortSignal) =>
+  json<LogsPage>('GET', `/api/logs?${params}`, { signal, anonymous: true })
 
 export const fetchTenants = () => json<Tenant[]>('GET', '/api/tenants', { quiet: true })
 export const fetchSites = () => json<SiteSummary[]>('GET', '/api/sites', { quiet: true })

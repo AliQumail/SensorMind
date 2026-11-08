@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { SiteSummary, Tenant } from '../../api/types'
+import { logsHref } from '../../lib/logsRoute'
 import { NotificationBell } from './NotificationBell'
 import { useConnectionState, type ConnectionState } from '../../state/readingsStore'
 
@@ -163,6 +164,9 @@ export function AppHeader({ nav }: { nav: HeaderNav }) {
           {connection.label}
         </div>
         <NotificationBell />
+        <a href={logsHref} className="rounded-lg px-2 py-1 text-sm text-text-muted hover:bg-surface-hover hover:text-text">
+          Logs
+        </a>
         <button
           type="button"
           onClick={nav.onLogout}

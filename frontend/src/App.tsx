@@ -15,9 +15,10 @@ import { LoginPage } from './components/auth/LoginPage'
 import { ChatPanel } from './components/chat/ChatPanel'
 import { AppHeader, type HeaderNav } from './components/layout/AppHeader'
 import { Panel } from './components/layout/Panel'
+import { SplitColumn } from './components/layout/SplitColumn'
 import { PlantLoader } from './components/layout/PlantLoader'
 import { PlantScene } from './components/scene/PlantScene'
-import { SensorPanel } from './components/sensors/SensorPanel'
+import { SensorPanel, SensorPanelTitle } from './components/sensors/SensorPanel'
 import { AssetTree } from './components/tree/AssetTree'
 import { buildPlantIndex, type PlantIndex } from './lib/plantIndex'
 import { PlantProvider } from './state/PlantProvider'
@@ -133,14 +134,14 @@ function Workspace({ user, onLogout }: { user: { username: string; role: string 
               <PlantScene />
             </div>
 
-            <div className="grid grid-rows-[32rem_22rem] gap-3 lg:min-h-0 lg:grid-rows-[minmax(0,3fr)_minmax(0,2fr)]">
-              <Panel>
-                <SensorPanel />
-              </Panel>
-              <Panel>
-                <ChatPanel />
-              </Panel>
-            </div>
+            <SplitColumn
+              storageKey="right"
+              className="h-[54.75rem] lg:h-auto lg:min-h-0"
+              sections={[
+                { title: <SensorPanelTitle />, children: <SensorPanel /> },
+                { title: 'Ask SensorMind', children: <ChatPanel /> },
+              ]}
+            />
           </main>
       )}
 

@@ -40,12 +40,12 @@ curl -X POST http://localhost:5080/api/plant/validate \
     "id": "site-walnut-berlin-mitte", "name": "Walnut Berlin Mitte", "location": "optional",
     "floors": [{
       "id": "floor-sales", "name": "Sales Floor", "level": 0,
-      "size": { "width": 18, "depth": 14 },  // metres
+      "size": { "width": 14, "depth": 12 },  // metres
       "assets": [{
         "id": "r-01", "name": "Chilled Cabinet R-01",
         "type": "refrigerator", "manufacturer": "Generic", "model": "Chilled cabinet",
         "description": "optional",
-        "position": { "x": 1.3, "z": 0.55 }, // footprint centre from the floor corner; optional "y" = base elevation
+        "position": { "x": 2.8, "z": 5.9 },  // footprint centre from the floor corner; optional "y" = base elevation
         "size": { "x": 2.4, "y": 2, "z": 0.9 },
         "rotation": 0,                     // optional, degrees around the vertical axis
         "shape": "box",                    // optional, defaults by type

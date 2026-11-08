@@ -1,6 +1,6 @@
 # SensorMind
 
-**Industrial IoT sensor intelligence platform.** SensorMind shows a 3D plant view where clicking an asset brings up its live sensor tags. Alongside it (from Phase 2) is a RAG assistant that answers questions about plant state, recent readings and asset manuals, with citations.
+**Industrial IoT sensor intelligence platform.** SensorMind shows live sensor values, alarms and a 3D floor view where clicking an asset brings up its live sensor tags. An assistant answers questions from live readings and asset manuals, with citations.
 
 Built with .NET 8, React 19, Three.js and Qdrant. MIT licensed.
 

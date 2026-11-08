@@ -13,13 +13,21 @@ const BADGE: Record<TagStatus, string> = {
   alarm: 'bg-alarm/12 text-alarm-text ring-alarm/35',
 }
 
-/** Colour is never the only signal: the dot carries a title and badges always show the label. */
-export function StatusDot({ status, className = '' }: { status: TagStatus | undefined; className?: string }) {
+/** Colour is never the only signal: the dot carries a title and badges always show the label. `still` is for keys/legends. */
+export function StatusDot({
+  status,
+  still = false,
+  className = '',
+}: {
+  status: TagStatus | undefined
+  still?: boolean
+  className?: string
+}) {
   return (
     <span
       title={status ? STATUS_LABEL[status] : 'No data'}
       className={`inline-block size-2 shrink-0 rounded-full ${status ? DOT[status] : 'bg-border-strong'} ${
-        status ? PULSE[status] : ''
+        status && !still ? PULSE[status] : ''
       } ${className}`}
     />
   )

@@ -1,7 +1,7 @@
 import { useMemo, useRef } from 'react'
 import { useFrame, type ThreeEvent } from '@react-three/fiber'
 import { Edges, useCursor } from '@react-three/drei'
-import { Color, type MeshStandardMaterial } from 'three'
+import { AdditiveBlending, BackSide, Color, type MeshBasicMaterial, type MeshStandardMaterial } from 'three'
 import type { Asset, TagStatus } from '../../api/types'
 import { isFlagged, prefersReducedMotion, pulseHz, useReducedMotion } from '../../theme/pulse'
 import { getThemeColors, type ThemeColors } from '../../theme/themeColors'
@@ -15,13 +15,19 @@ interface Props {
   onHover: (id: string | null) => void
 }
 
-// Emissive intensity range per status; the alarm swings wider. Reduced motion holds a fixed bright tint.
-const INTENSITY = { warning: [0.05, 0.5], alarm: [0.1, 1.3] } as const
-const STILL_INTENSITY = 0.8
+// Per status, the pulse swings between low and high: emissive intensity, how far the body colour moves
+// towards the status colour (0..1) and the glow shell opacity. Reduced motion holds the STILL values.
+const PULSE = {
+  warning: { intensity: [0.05, 0.8], tint: [0, 0.7], glow: [0.05, 0.4] },
+  alarm: { intensity: [0.1, 1.6], tint: [0, 0.85], glow: [0.1, 0.65] },
+} as const
+const STILL = { intensity: 0.8, tint: 0.7, glow: 0.35 }
+const GLOW_SCALE = 1.06
 
 export function AssetModel({ asset, status, selected, hovered, onSelect, onHover }: Props) {
   const colors = getThemeColors()
   const material = useRef<MeshStandardMaterial>(null)
+  const glow = useRef<MeshBasicMaterial>(null)
   useCursor(hovered)
   const reduced = useReducedMotion()
 
@@ -32,13 +38,17 @@ export function AssetModel({ asset, status, selected, hovered, onSelect, onHover
     [status, colors],
   )
 
-  // Only warning/alarm meshes animate: a sine pulse of the emissive tint, written straight to the material.
+  // The body material is keyed by status so a unit back to normal gets a fresh, unmutated colour.
+  // Only warning/alarm meshes animate: one sine drives the body colour, emissive and glow, written straight to the materials.
   useFrame(({ clock }) => {
-    if (!material.current || !isFlagged(status)) return
-    const [low, high] = INTENSITY[status]
-    material.current.emissiveIntensity = prefersReducedMotion()
-      ? STILL_INTENSITY
-      : low + (high - low) * (0.5 - 0.5 * Math.cos(2 * Math.PI * pulseHz(status) * clock.elapsedTime))
+    if (!material.current || !glow.current || !isFlagged(status)) return
+    const p = PULSE[status]
+    const still = prefersReducedMotion()
+    const t = 0.5 - 0.5 * Math.cos(2 * Math.PI * pulseHz(status) * clock.elapsedTime)
+    const mix = (range: readonly [number, number], fixed: number) => (still ? fixed : range[0] + (range[1] - range[0]) * t)
+    material.current.color.copy(baseColor).lerp(emissive, mix(p.tint, STILL.tint))
+    material.current.emissiveIntensity = mix(p.intensity, STILL.intensity)
+    glow.current.opacity = mix(p.glow, STILL.glow)
   })
 
   const handleClick = (event: ThreeEvent<MouseEvent>) => {
@@ -72,7 +82,7 @@ export function AssetModel({ asset, status, selected, hovered, onSelect, onHover
         onPointerOut={() => onHover(null)}
       >
         <Geometry shape={shape} size={size} bodyHeight={bodyHeight} />
-        <meshStandardMaterial ref={material} color={baseColor} emissive={emissive} roughness={0.65} metalness={0.15} />
+        <meshStandardMaterial key={status} ref={material} color={baseColor} emissive={emissive} roughness={0.65} metalness={0.15} />
         {(selected || hovered || (reduced && isFlagged(status))) && (
           <Edges
             threshold={20}
@@ -81,6 +91,27 @@ export function AssetModel({ asset, status, selected, hovered, onSelect, onHover
           />
         )}
       </mesh>
+
+      {isFlagged(status) && (
+        // Glow shell: a slightly larger additive copy in the status colour, so the unit halos even when selected.
+        <mesh
+          position={[0, skidHeight + bodyHeight / 2, 0]}
+          rotation={isHorizontal ? [0, 0, Math.PI / 2] : [0, 0, 0]}
+          scale={GLOW_SCALE}
+          raycast={() => null}
+        >
+          <Geometry shape={shape} size={size} bodyHeight={bodyHeight} />
+          <meshBasicMaterial
+            ref={glow}
+            color={emissive}
+            transparent
+            opacity={0}
+            side={BackSide}
+            blending={AdditiveBlending}
+            depthWrite={false}
+          />
+        </mesh>
+      )}
 
       {selected && (
         // Footprint pad: reads as "this one" from any camera angle, even when edges are occluded.

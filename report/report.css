@@ -25,7 +25,7 @@ li { margin: 0 0 0.6mm; }
 figure { margin: 2.5mm 0; text-align: center; break-inside: avoid; }
 figure svg, figure > img { display: block; margin: 0 auto; max-width: 100%; height: auto; }
 figure.wide svg { width: 94%; }
-figure.main img { width: 84%; }
+figure.main img { width: 100%; }
 figure.wide.f1 svg { width: 86%; }
 figure.wide.f2 svg { width: 94%; }
 figcaption { font-size: 9pt; margin-top: 1.5mm; text-align: justify; text-indent: 0; line-height: 1.2; }
@@ -44,3 +44,11 @@ tbody tr:last-child td { border-bottom: 0.8pt solid #000; }
 ol.refs { font-size: 8.6pt; margin: 0; padding-left: 6mm; line-height: 1.2; }
 ol.refs li { margin-bottom: 0.8mm; text-align: left; }
 h2.refs { margin-top: 3mm; }
+
+figure.wide.pair .row { align-items: flex-start; }
+.duo { display: flex; gap: 4%; align-items: flex-start; margin: 2.5mm 0; break-inside: avoid; }
+.duo figure { margin: 0; }
+.duo .f5 { width: 38%; }
+.duo .f6 { width: 58%; }
+.duo .f6 img { width: 52%; border: 0.3pt solid #999; }
+.duo figure svg { width: 100%; }

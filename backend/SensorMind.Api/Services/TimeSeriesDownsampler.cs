@@ -1,4 +1,6 @@
-namespace SensorMind.Core.Sensors;
+using SensorMind.Api.Models;
+
+namespace SensorMind.Api.Services;
 
 public static class TimeSeriesDownsampler
 {

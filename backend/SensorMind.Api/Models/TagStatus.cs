@@ -1,6 +1,5 @@
-using SensorMind.Core.Plant;
 
-namespace SensorMind.Core.Sensors;
+namespace SensorMind.Api.Models;
 
 // Ordered by severity so the worst status of a set is the maximum.
 public enum TagStatus

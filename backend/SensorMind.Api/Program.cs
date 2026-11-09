@@ -1,3 +1,10 @@
+using SensorMind.Api.Repositories;
+using SensorMind.Api.Services;
+using SensorMind.Api.Services.Simulation;
+using SensorMind.Api.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Qdrant.Client;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -9,15 +16,48 @@ using Microsoft.OpenApi.Models;
 using SensorMind.Api.Auth;
 using SensorMind.Api.Chat;
 using SensorMind.Api.Logging;
-using SensorMind.Infrastructure;
-using SensorMind.Core.Auth;
-using SensorMind.Infrastructure.Sites;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("SensorMind")
     ?? throw new InvalidOperationException("ConnectionStrings:SensorMind is not configured.");
-builder.Services.AddSensorMindInfrastructure(builder.Configuration, connectionString);
+
+builder.Services.AddDbContextFactory<SensorMindDbContext>(options => options.UseNpgsql(connectionString));
+builder.Services.AddSingleton<ITenantRepository, TenantRepository>();
+builder.Services.AddSingleton<IUserRepository, UserRepository>();
+builder.Services.AddSingleton<ILogRepository, LogRepository>();
+builder.Services.AddSingleton<PlantCatalog>();
+builder.Services.AddSingleton(TimeProvider.System);
+
+builder.Services.AddOptions<SimulationOptions>()
+    .Bind(builder.Configuration.GetSection(SimulationOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+builder.Services.AddSingleton<ISensorStore>(sp =>
+    new InMemorySensorStore(sp.GetRequiredService<IOptions<SimulationOptions>>().Value.CapacityPerTag));
+builder.Services.AddSingleton<ReadingBroadcaster>();
+builder.Services.AddSingleton<IReadingFeed>(sp => sp.GetRequiredService<ReadingBroadcaster>());
+builder.Services.AddHostedService<SensorSimulationService>();
+
+builder.Services.AddOptions<QdrantOptions>()
+    .Bind(builder.Configuration.GetSection(QdrantOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+builder.Services.AddSingleton(sp =>
+{
+    var qdrant = sp.GetRequiredService<IOptions<QdrantOptions>>().Value;
+    return new QdrantClient(new Uri(qdrant.Url), qdrant.ApiKey);
+});
+builder.Services.AddSingleton<ManualVectorStore>();
+
+builder.Services.Configure<OpenRouterOptions>(builder.Configuration.GetSection(OpenRouterOptions.SectionName));
+builder.Services.Configure<ManualsOptions>(builder.Configuration.GetSection(ManualsOptions.SectionName));
+builder.Services.AddHttpClient<OpenRouterClient>((sp, client) =>
+{
+    client.BaseAddress = new Uri(sp.GetRequiredService<IOptions<OpenRouterOptions>>().Value.BaseUrl.TrimEnd('/') + "/");
+    client.Timeout = TimeSpan.FromMinutes(5);
+});
+builder.Services.AddHostedService<ManualIngestionService>();
 
 // The same JSON rules for controller responses and for the SSE streams, which serialize by hand.
 static void ConfigureJson(JsonSerializerOptions options)
@@ -94,7 +134,11 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-app.Services.MigrateSensorMindDatabase();
+// Run once at startup, before anything reads the tables.
+using (var db = app.Services.GetRequiredService<IDbContextFactory<SensorMindDbContext>>().CreateDbContext())
+{
+    db.Database.Migrate();
+}
 
 // First run: the sample plant becomes the first tenant with one site.
 app.Services.GetRequiredService<PlantCatalog>().SeedIfEmpty(

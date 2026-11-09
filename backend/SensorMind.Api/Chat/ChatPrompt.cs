@@ -1,8 +1,8 @@
+using SensorMind.Api.Models;
+using SensorMind.Api.Repositories;
+using SensorMind.Api.Services;
 using System.Globalization;
 using System.Text;
-using SensorMind.Core.Plant;
-using SensorMind.Core.Sensors;
-using SensorMind.Infrastructure.Manuals;
 
 namespace SensorMind.Api.Chat;
 

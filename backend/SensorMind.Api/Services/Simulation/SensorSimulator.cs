@@ -1,6 +1,6 @@
-using SensorMind.Core.Plant;
+using SensorMind.Api.Models;
 
-namespace SensorMind.Core.Sensors.Simulation;
+namespace SensorMind.Api.Services.Simulation;
 
 // Deterministic per seed; each tag has its own RNG so adding or removing a tag leaves others unchanged.
 public sealed class SensorSimulator

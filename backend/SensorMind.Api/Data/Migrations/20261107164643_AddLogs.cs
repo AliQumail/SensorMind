@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace SensorMind.Infrastructure.Data.Migrations
+namespace SensorMind.Api.Data.Migrations
 {
     public partial class AddLogs : Migration
     {

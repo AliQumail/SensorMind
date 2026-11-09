@@ -1,12 +1,8 @@
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using SensorMind.Api.Models;
+using SensorMind.Api.Repositories;
 using Microsoft.Extensions.Options;
-using SensorMind.Core.Plant;
-using SensorMind.Core.Sensors;
-using SensorMind.Core.Sensors.Simulation;
-using SensorMind.Infrastructure.Sites;
 
-namespace SensorMind.Infrastructure.Sensors;
+namespace SensorMind.Api.Services.Simulation;
 
 // One simulator per site: backfills new tags, samples each interval, follows catalog changes.
 internal sealed partial class SensorSimulationService(

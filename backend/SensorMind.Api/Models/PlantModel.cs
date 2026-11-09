@@ -1,4 +1,5 @@
-namespace SensorMind.Core.Plant;
+
+namespace SensorMind.Api.Models;
 
 // Validated, immutable; only PlantConfigParser produces it, so its invariants can be relied on.
 

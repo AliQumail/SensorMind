@@ -1,3 +1,6 @@
+using SensorMind.Api.Models;
+using SensorMind.Api.Repositories;
+using SensorMind.Api.Services;
 using System.Globalization;
 using System.Net;
 using System.Text;
@@ -7,10 +10,6 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using SensorMind.Api.Chat;
 using SensorMind.Api.Logging;
-using SensorMind.Core.Plant;
-using SensorMind.Core.Sensors;
-using SensorMind.Infrastructure.Manuals;
-using SensorMind.Infrastructure.Sites;
 
 namespace SensorMind.Api.Controllers;
 

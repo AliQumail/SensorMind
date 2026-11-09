@@ -1,9 +1,7 @@
+using SensorMind.Api.Models;
 using Microsoft.EntityFrameworkCore;
-using SensorMind.Core.Auth;
-using SensorMind.Core.Logs;
-using SensorMind.Core.Sites;
 
-namespace SensorMind.Infrastructure.Data;
+namespace SensorMind.Api.Data;
 
 public sealed class SensorMindDbContext(DbContextOptions<SensorMindDbContext> options) : DbContext(options)
 {

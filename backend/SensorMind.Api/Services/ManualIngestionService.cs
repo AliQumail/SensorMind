@@ -1,11 +1,9 @@
+using SensorMind.Api.Repositories;
 using System.Security.Cryptography;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using SensorMind.Infrastructure.Sites;
 using UglyToad.PdfPig;
 
-namespace SensorMind.Infrastructure.Manuals;
+namespace SensorMind.Api.Services;
 
 public sealed class ManualsOptions
 {

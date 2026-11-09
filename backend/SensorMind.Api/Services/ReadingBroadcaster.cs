@@ -1,9 +1,10 @@
+using SensorMind.Api.Models;
+using SensorMind.Api.Repositories;
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Threading.Channels;
-using SensorMind.Core.Sensors;
 
-namespace SensorMind.Infrastructure.Sensors;
+namespace SensorMind.Api.Services;
 
 // Per-subscriber bounded channel dropping the oldest batch, so a slow client never stalls others.
 public sealed class ReadingBroadcaster : IReadingFeed

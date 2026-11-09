@@ -17,8 +17,6 @@ You are helping me build **SensorMind**, an open-source (MIT) Industrial IoT Sen
 ```
 /frontend
 /backend/SensorMind.Api
-/backend/SensorMind.Core        (domain, interfaces)
-/backend/SensorMind.Infrastructure (Qdrant, OpenRouter, ingestion)
 /backend/SensorMind.Tests
 /data/plant.sample.json
 /data/manuals/                  (public Grundfos and Atlas Copco PDFs, added by me)

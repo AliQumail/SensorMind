@@ -1,7 +1,7 @@
+using SensorMind.Api.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SensorMind.Api.Auth;
-using SensorMind.Infrastructure.Sites;
 
 namespace SensorMind.Api.Controllers;
 

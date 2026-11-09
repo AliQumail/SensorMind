@@ -3,7 +3,7 @@ using Qdrant.Client;
 using Qdrant.Client.Grpc;
 using static Qdrant.Client.Grpc.Conditions;
 
-namespace SensorMind.Infrastructure.Manuals;
+namespace SensorMind.Api.Services;
 
 public sealed record ManualChunk(string Text, string SourceFile, int Page, string DocumentHash, string? Manufacturer = null, string? Model = null);
 

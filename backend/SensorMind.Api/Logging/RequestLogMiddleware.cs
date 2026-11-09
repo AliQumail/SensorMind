@@ -1,5 +1,6 @@
+using SensorMind.Api.Models;
+using SensorMind.Api.Repositories;
 using Microsoft.AspNetCore.WebUtilities;
-using SensorMind.Core.Logs;
 
 namespace SensorMind.Api.Logging;
 

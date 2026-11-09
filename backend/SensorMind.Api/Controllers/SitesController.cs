@@ -1,5 +1,5 @@
+using SensorMind.Api.Repositories;
 using Microsoft.AspNetCore.Mvc;
-using SensorMind.Infrastructure.Sites;
 
 namespace SensorMind.Api.Controllers;
 

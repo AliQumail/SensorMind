@@ -1,4 +1,6 @@
-namespace SensorMind.Core.Auth;
+using SensorMind.Api.Models;
+
+namespace SensorMind.Api.Repositories;
 
 public interface IUserRepository
 {

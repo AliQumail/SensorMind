@@ -1,9 +1,9 @@
+using SensorMind.Api.Models;
+using SensorMind.Api.Services;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using SensorMind.Core.Plant;
-using SensorMind.Core.Sites;
 
-namespace SensorMind.Infrastructure.Sites;
+namespace SensorMind.Api.Repositories;
 
 public sealed record SaveResult(IReadOnlyList<ConfigError> Errors, string? SiteId = null)
 {

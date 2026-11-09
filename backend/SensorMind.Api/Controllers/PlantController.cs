@@ -1,5 +1,6 @@
+using SensorMind.Api.Models;
+using SensorMind.Api.Services;
 using Microsoft.AspNetCore.Mvc;
-using SensorMind.Core.Plant;
 
 namespace SensorMind.Api.Controllers;
 

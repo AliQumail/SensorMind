@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace SensorMind.Infrastructure.Data.Migrations
+namespace SensorMind.Api.Data.Migrations
 {
     public partial class InitialCreate : Migration
     {

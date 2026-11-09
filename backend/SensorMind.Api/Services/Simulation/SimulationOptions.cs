@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace SensorMind.Infrastructure.Sensors;
+namespace SensorMind.Api.Services.Simulation;
 
 public sealed class SimulationOptions
 {

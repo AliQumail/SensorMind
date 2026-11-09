@@ -1,8 +1,9 @@
+using SensorMind.Api.Models;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
-namespace SensorMind.Core.Plant;
+namespace SensorMind.Api.Services;
 
 // Located by JSONPath, e.g. $.site.floors[0].assets[1].
 public sealed record ConfigError(string Path, string Message)

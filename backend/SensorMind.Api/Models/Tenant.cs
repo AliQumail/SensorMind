@@ -1,4 +1,5 @@
-namespace SensorMind.Core.Sites;
+
+namespace SensorMind.Api.Models;
 
 public sealed record Tenant(string Id, string Name);
 

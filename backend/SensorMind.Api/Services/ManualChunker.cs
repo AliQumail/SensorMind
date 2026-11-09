@@ -1,4 +1,5 @@
-namespace SensorMind.Infrastructure.Manuals;
+
+namespace SensorMind.Api.Services;
 
 public static class ManualChunker
 {

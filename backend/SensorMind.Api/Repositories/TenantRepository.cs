@@ -1,8 +1,8 @@
+using SensorMind.Api.Models;
+using SensorMind.Api.Data;
 using Microsoft.EntityFrameworkCore;
-using SensorMind.Core.Sites;
-using SensorMind.Infrastructure.Data;
 
-namespace SensorMind.Infrastructure.Sites;
+namespace SensorMind.Api.Repositories;
 
 internal sealed class TenantRepository(IDbContextFactory<SensorMindDbContext> factory) : ITenantRepository
 {

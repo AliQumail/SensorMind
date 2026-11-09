@@ -111,9 +111,7 @@ See [`frontend/.env.example`](frontend/.env.example).
 
 ```
 backend/
-  SensorMind.Api             API controllers, SSE, CORS, hosting
-  SensorMind.Core            Domain model, config parser/validator, simulator, repository interfaces (no IO)
-  SensorMind.Infrastructure  EF Core repositories and migrations (PostgreSQL: tenants, sites, users), Qdrant vector store, in-memory store, live feed, simulation service
+  SensorMind.Api             Controllers, repositories (EF Core + PostgreSQL), models, services (simulation, plant parser, Qdrant/OpenRouter manuals, live feed), migrations
 frontend/                    React 19 + TypeScript + Vite, @react-three/fiber, Recharts, Tailwind v4
 data/plant.sample.json       Walnut Berlin Central: 2 floors, 20 refrigerators, 60 tags
 data/manuals/                Asset manual PDFs for RAG (one fictional demo manual is included)

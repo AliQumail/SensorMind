@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using SensorMind.Infrastructure.Data;
+using SensorMind.Api.Data;
 
 #nullable disable
 
-namespace SensorMind.Infrastructure.Data.Migrations
+namespace SensorMind.Api.Data.Migrations
 {
     [DbContext(typeof(SensorMindDbContext))]
     [Migration("20261107145750_InitialCreate")]
@@ -23,7 +23,7 @@ namespace SensorMind.Infrastructure.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("SensorMind.Core.Auth.User", b =>
+            modelBuilder.Entity("SensorMind.Api.Models.User", b =>
                 {
                     b.Property<string>("Username")
                         .HasColumnType("text")
@@ -44,7 +44,7 @@ namespace SensorMind.Infrastructure.Data.Migrations
                     b.ToTable("users", (string)null);
                 });
 
-            modelBuilder.Entity("SensorMind.Core.Sites.SiteEntry", b =>
+            modelBuilder.Entity("SensorMind.Api.Models.SiteEntry", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("text")
@@ -72,7 +72,7 @@ namespace SensorMind.Infrastructure.Data.Migrations
                     b.ToTable("sites", (string)null);
                 });
 
-            modelBuilder.Entity("SensorMind.Core.Sites.Tenant", b =>
+            modelBuilder.Entity("SensorMind.Api.Models.Tenant", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("text")
@@ -88,9 +88,9 @@ namespace SensorMind.Infrastructure.Data.Migrations
                     b.ToTable("tenants", (string)null);
                 });
 
-            modelBuilder.Entity("SensorMind.Core.Sites.SiteEntry", b =>
+            modelBuilder.Entity("SensorMind.Api.Models.SiteEntry", b =>
                 {
-                    b.HasOne("SensorMind.Core.Sites.Tenant", null)
+                    b.HasOne("SensorMind.Api.Models.Tenant", null)
                         .WithMany()
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.Cascade)

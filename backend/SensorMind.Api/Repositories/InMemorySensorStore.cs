@@ -1,7 +1,7 @@
+using SensorMind.Api.Models;
 using System.Collections.Concurrent;
-using SensorMind.Core.Sensors;
 
-namespace SensorMind.Infrastructure.Sensors;
+namespace SensorMind.Api.Repositories;
 
 // Ring buffer per tag (about 1.5 MB per tag for 24h at 2s); per-tag timestamps must be non-decreasing.
 public sealed class InMemorySensorStore : ISensorStore

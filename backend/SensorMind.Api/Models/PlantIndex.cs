@@ -1,4 +1,5 @@
-namespace SensorMind.Core.Plant;
+
+namespace SensorMind.Api.Models;
 
 public sealed record TagLocation(Tag Tag, Asset Asset, Floor Floor);
 

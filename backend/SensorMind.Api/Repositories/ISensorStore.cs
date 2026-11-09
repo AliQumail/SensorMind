@@ -1,4 +1,6 @@
-namespace SensorMind.Core.Sensors;
+using SensorMind.Api.Models;
+
+namespace SensorMind.Api.Repositories;
 
 // In-memory window is the only implementation; the interface lets a historian or TSDB replace it.
 public interface ISensorStore

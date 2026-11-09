@@ -1,10 +1,10 @@
+using SensorMind.Api.Models;
+using SensorMind.Api.Repositories;
+using SensorMind.Api.Services;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using SensorMind.Core.Plant;
-using SensorMind.Core.Sensors;
-using SensorMind.Infrastructure.Sites;
 
 namespace SensorMind.Api.Controllers;
 

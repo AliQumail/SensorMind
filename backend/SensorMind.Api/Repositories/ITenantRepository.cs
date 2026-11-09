@@ -1,4 +1,6 @@
-namespace SensorMind.Core.Sites;
+using SensorMind.Api.Models;
+
+namespace SensorMind.Api.Repositories;
 
 public interface ITenantRepository
 {

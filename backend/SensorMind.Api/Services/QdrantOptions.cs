@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace SensorMind.Infrastructure.Manuals;
+namespace SensorMind.Api.Services;
 
 public sealed class QdrantOptions
 {

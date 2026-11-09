@@ -1,4 +1,5 @@
-namespace SensorMind.Core.Sensors;
+
+namespace SensorMind.Api.Models;
 
 public readonly record struct SensorReading(string TagId, DateTimeOffset Timestamp, double Value, TagStatus Status);
 

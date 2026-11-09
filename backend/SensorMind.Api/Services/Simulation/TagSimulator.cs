@@ -1,6 +1,6 @@
-using SensorMind.Core.Plant;
+using SensorMind.Api.Models;
 
-namespace SensorMind.Core.Sensors.Simulation;
+namespace SensorMind.Api.Services.Simulation;
 
 // Ornstein-Uhlenbeck walk around the band centre plus Poisson drifts, spikes and short alarm excursions.
 internal sealed class TagSimulator

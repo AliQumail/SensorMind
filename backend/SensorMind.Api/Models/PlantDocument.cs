@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace SensorMind.Core.Plant;
+namespace SensorMind.Api.Models;
 
 // Raw file shape, all nullable so missing fields become validation errors with a path; parser use only.
 

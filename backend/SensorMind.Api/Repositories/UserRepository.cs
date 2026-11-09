@@ -1,8 +1,8 @@
+using SensorMind.Api.Models;
+using SensorMind.Api.Data;
 using Microsoft.EntityFrameworkCore;
-using SensorMind.Core.Auth;
-using SensorMind.Infrastructure.Data;
 
-namespace SensorMind.Infrastructure.Auth;
+namespace SensorMind.Api.Repositories;
 
 internal sealed class UserRepository(IDbContextFactory<SensorMindDbContext> factory) : IUserRepository
 {

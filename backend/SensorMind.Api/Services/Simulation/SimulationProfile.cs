@@ -1,4 +1,5 @@
-namespace SensorMind.Core.Sensors.Simulation;
+
+namespace SensorMind.Api.Services.Simulation;
 
 // Event rates are per tag.
 public sealed record SimulationProfile

@@ -1,10 +1,8 @@
+using SensorMind.Api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using SensorMind.Core.Auth;
-using SensorMind.Core.Logs;
-using SensorMind.Core.Sites;
 
-namespace SensorMind.Infrastructure.Data;
+namespace SensorMind.Api.Data;
 
 // Table and column names match the tables the app created before EF Core, so existing databases load unchanged.
 internal sealed class UserConfiguration : IEntityTypeConfiguration<User>

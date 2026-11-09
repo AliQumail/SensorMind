@@ -1,3 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <!-- Domain model and abstractions. No framework or IO dependencies. -->
-</Project>
